@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JDIH BKD Kabupaten Sidoarjo — Beranda</title>
+  <meta name="description" content="Jaringan Dokumentasi dan Informasi Hukum Badan Kepegawaian Daerah Kabupaten Sidoarjo. Temukan peraturan, keputusan, dan dokumen hukum kepegawaian secara mudah dan cepat." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Halaman-specific styles (beranda) */
+    .recently-added { background: var(--gray-lightest); }
+    .doc-recent-section { background: var(--white); }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOP BAR — Navigasi BKD Existing
+     ============================================================ -->
+<div class="topbar">
+  <div class="container">
+    <div class="topbar-inner">
+      <div class="topbar-info">
+        <span>📅 Senin, 1 September 2026</span>
+        <span>|</span>
+        <span>🌐 bkd.sidoarjokab.go.id</span>
+      </div>
+      <nav class="topbar-nav" aria-label="Navigasi BKD Utama">
+        <a href="#">PROFIL</a>
+        <a href="#">LAYANAN</a>
+        <a href="#">PPID</a>
+        <a href="#">DOWNLOAD</a>
+        <a href="#">INFO</a>
+        <a href="#">PENGADUAN</a>
+        <a href="index.html" class="active">JDIH</a>
+        <a href="admin-menu-jdih.html" style="background:#5b2a6e; color:#fff; padding:0.2rem 0.6rem; border-radius:4px; font-weight:700; border:1px solid rgba(255,255,255,0.25);" title="Buka Panel Admin JDIH">🔐 Panel Admin</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SITE HEADER — Dual Logo
+     ============================================================ -->
+<header class="site-header" role="banner">
+  <div class="container">
+    <div class="header-inner">
+      <!-- Dual Logo -->
+      <div class="header-logos">
+        <!-- Logo JDIH BKD -->
+        <a href="index.html" class="logo-item" aria-label="Beranda JDIH BKD Sidoarjo">
+          <div class="logo-placeholder logo-placeholder-jdih" role="img" aria-label="Logo JDIH BKD">⚖️</div>
+          <div class="logo-text">
+            <span class="org-name">Badan Kepegawaian Daerah</span>
+            <span class="org-unit">Kabupaten Sidoarjo</span>
+            <span class="org-jdih">JDIH</span>
+          </div>
+        </a>
+        <div class="logo-separator" aria-hidden="true"></div>
+        <!-- Logo Kabupaten Sidoarjo -->
+        <a href="https://sidoarjokab.go.id" target="_blank" rel="noopener" class="logo-item" aria-label="Website Kabupaten Sidoarjo">
+          <div class="logo-placeholder logo-placeholder-sidoarjo" role="img" aria-label="Lambang Kabupaten Sidoarjo">🦐</div>
+          <div class="logo-text">
+            <span class="org-name">Pemerintah</span>
+            <span class="org-unit">Kab. Sidoarjo</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-Navigasi JDIH -->
+  <nav class="jdih-nav-bar" aria-label="Navigasi JDIH">
+    <div class="container">
+      <div class="jdih-nav-inner">
+        <!-- Hamburger Mobile -->
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu navigasi" aria-expanded="false" aria-controls="jdihNav">
+          <span></span><span></span><span></span>
+        </button>
+
+        <ul class="jdih-nav" id="jdihNav" role="menubar">
+          <!-- Beranda -->
+          <li role="none">
+            <a href="index.html" class="active" role="menuitem" aria-current="page">🏠 Beranda</a>
+          </li>
+
+          <!-- Profil Dropdown -->
+          <li role="none" class="has-dropdown" id="dropProfil">
+            <button role="menuitem" aria-haspopup="true" aria-expanded="false" id="btnProfil">
+              Profil <span class="nav-arrow" aria-hidden="true">▾</span>
+            </button>
+            <ul class="dropdown" role="menu" aria-labelledby="btnProfil">
+              <li role="none"><a href="profil-tentang-kami.html" role="menuitem">Tentang Kami</a></li>
+              <li role="none"><a href="profil-dasar-hukum.html" role="menuitem">Dasar Hukum</a></li>
+              <li role="none"><a href="profil-tugas-fungsi.html" role="menuitem">Tugas dan Fungsi</a></li>
+              <li role="none"><a href="profil-struktur-organisasi.html" role="menuitem">Struktur Organisasi</a></li>
+            </ul>
+          </li>
+
+          <!-- Dokumen Hukum Dropdown -->
+          <li role="none" class="has-dropdown" id="dropDokumen">
+            <button role="menuitem" aria-haspopup="true" aria-expanded="false" id="btnDokumen">
+              Dokumen Hukum <span class="nav-arrow" aria-hidden="true">▾</span>
+            </button>
+            <ul class="dropdown" role="menu" aria-labelledby="btnDokumen">
+              <!-- Peraturan Perundang-undangan (with submenu) -->
+              <li role="none" class="has-submenu" id="dropPeraturan">
+                <button role="menuitem" aria-haspopup="true" aria-expanded="false">
+                  Peraturan Perundang-undangan
+                  <span class="submenu-arrow" aria-hidden="true">›</span>
+                </button>
+                <ul class="submenu" role="menu">
+                  <li role="none"><a href="dokumen-peraturan-perundangan.html" role="menuitem"><span class="submenu-icon">›</span> Peraturan Bupati</a></li>
+                  <li role="none"><a href="dokumen-peraturan-perundangan.html" role="menuitem"><span class="submenu-icon">›</span> Keputusan Bupati</a></li>
+                  <li role="none"><a href="dokumen-peraturan-perundangan.html" role="menuitem"><span class="submenu-icon">›</span> Keputusan Kepala BKD</a></li>
+                  <li role="none"><a href="dokumen-peraturan-perundangan.html" role="menuitem"><span class="submenu-icon">›</span> Surat Edaran</a></li>
+                  <li role="none"><a href="dokumen-peraturan-perundangan.html" role="menuitem"><span class="submenu-icon">›</span> Perjanjian Kinerja</a></li>
+                </ul>
+              </li>
+              <li role="none"><a href="dokumen-monografi-hukum.html" role="menuitem">Monografi Hukum</a></li>
+              <li role="none"><a href="dokumen-artikel-hukum.html" role="menuitem">Artikel Hukum</a></li>
+              <li role="none"><a href="dokumen-putusan.html" role="menuitem">Putusan</a></li>
+            </ul>
+          </li>
+
+          <!-- E-Uji Publik -->
+          <li role="none">
+            <a href="e-uji-publik.html" role="menuitem">E-Uji Publik</a>
+          </li>
+
+          <!-- Berita -->
+          <li role="none">
+            <a href="berita.html" role="menuitem">Berita</a>
+          </li>
+
+          <!-- Pencarian Publik -->
+          <li role="none">
+            <a href="jdih-search-publik.html" role="menuitem">🔍 Cari</a>
+          </li>
+
+          <!-- Shortcut Panel Admin -->
+          <li role="none">
+            <a href="admin-menu-jdih.html" role="menuitem" style="color:var(--gold-light); font-weight:700; border:1px solid rgba(200,162,39,0.3); border-radius:4px; padding:0.4rem 0.75rem; background:rgba(200,162,39,0.1);">🔐 Panel Admin</a>
+          </li>
+        </ul>
+
+        <!-- Toggle Bahasa -->
+        <div class="lang-toggle" aria-label="Pilihan Bahasa">
+          <a href="#" class="active" aria-label="Bahasa Indonesia" lang="id">ID</a>
+          <span class="lang-sep" aria-hidden="true">|</span>
+          <a href="#" aria-label="English" lang="en">EN</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="hero" aria-label="Banner Beranda JDIH">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-pattern" aria-hidden="true"></div>
+  <div class="container">
+    <div class="hero-content">
+      <span class="hero-label">⚖️ Jaringan Dokumentasi & Informasi Hukum</span>
+      <h1>
+        Badan Kepegawaian Daerah<br>
+        <span>Kabupaten Sidoarjo</span>
+      </h1>
+      <p class="hero-tagline">
+        Temukan peraturan, keputusan, dan dokumen hukum kepegawaian secara mudah, cepat, dan terpercaya.
+      </p>
+      <div class="hero-stats" aria-label="Statistik Dokumen">
+        <div class="hero-stat">
+          <span class="num">1.248</span>
+          <span class="label">Total Dokumen</span>
+        </div>
+        <div class="hero-stat">
+          <span class="num">87</span>
+          <span class="label">Dokumen Baru</span>
+        </div>
+        <div class="hero-stat">
+          <span class="num">5</span>
+          <span class="label">Kategori Hukum</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SEARCH CARD — Overlap ke Hero
+     ============================================================ -->
+<div class="search-section">
+  <div class="container">
+    <div class="search-card">
+      <div class="search-card-title">
+        <span class="icon" aria-hidden="true">🔍</span>
+        Cari Dokumen Hukum
+      </div>
+      <form class="search-form" role="search" aria-label="Pencarian dokumen hukum">
+        <div class="search-fields">
+          <div class="form-group">
+            <label for="searchJudul">Judul</label>
+            <input
+              type="text"
+              id="searchJudul"
+              class="form-control"
+              placeholder="Contoh: Peraturan Bupati Sidoarjo tentang..."
+              aria-label="Cari berdasarkan judul dokumen"
+            />
+          </div>
+          <div class="form-group">
+            <label for="searchNomor">Nomor</label>
+            <input
+              type="text"
+              id="searchNomor"
+              class="form-control"
+              placeholder="Contoh: 15/2024"
+              aria-label="Cari berdasarkan nomor dokumen"
+            />
+          </div>
+          <div class="form-group">
+            <label for="searchTahun">Tahun</label>
+            <select id="searchTahun" class="form-control" aria-label="Pilih tahun dokumen">
+              <option value="">Semua Tahun</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+              <option value="2021">2021</option>
+              <option value="2020">2020</option>
+              <option value="2019">2019</option>
+            </select>
+          </div>
+        </div>
+        <!-- Voice Search -->
+        <button
+          type="button"
+          class="voice-search-btn"
+          id="voiceSearchBtn"
+          aria-label="Cari dengan suara"
+          title="Voice Search"
+          aria-pressed="false"
+        >🎙️</button>
+        <!-- Tombol Cari -->
+        <button type="submit" class="btn-search" aria-label="Mulai pencarian">
+          🔍 Cari
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     KATEGORI DOKUMEN
+     ============================================================ -->
+<section class="section" aria-labelledby="kategoriTitle">
+  <div class="container">
+    <div class="section-title">
+      <h2 id="kategoriTitle">Kategori Dokumen Hukum</h2>
+      <p>Temukan dokumen berdasarkan jenis peraturan yang Anda butuhkan</p>
+    </div>
+    <div class="cat-grid" role="list" aria-label="Kategori dokumen hukum">
+      <a href="dokumen-peraturan-perundangan.html" class="cat-card" role="listitem" aria-label="Peraturan Bupati">
+        <div class="cat-icon" aria-hidden="true">📜</div>
+        <span class="cat-label">Peraturan Bupati</span>
+        <span class="cat-count">342 dokumen</span>
+      </a>
+      <a href="dokumen-peraturan-perundangan.html" class="cat-card" role="listitem" aria-label="Keputusan Bupati">
+        <div class="cat-icon" aria-hidden="true">📋</div>
+        <span class="cat-label">Keputusan Bupati</span>
+        <span class="cat-count">518 dokumen</span>
+      </a>
+      <a href="dokumen-peraturan-perundangan.html" class="cat-card" role="listitem" aria-label="Keputusan Kepala BKD">
+        <div class="cat-icon" aria-hidden="true">🏛️</div>
+        <span class="cat-label">Keputusan Kepala BKD</span>
+        <span class="cat-count">187 dokumen</span>
+      </a>
+      <a href="dokumen-peraturan-perundangan.html" class="cat-card" role="listitem" aria-label="Surat Edaran">
+        <div class="cat-icon" aria-hidden="true">✉️</div>
+        <span class="cat-label">Surat Edaran</span>
+        <span class="cat-count">124 dokumen</span>
+      </a>
+      <a href="dokumen-peraturan-perundangan.html" class="cat-card" role="listitem" aria-label="Perjanjian Kinerja">
+        <div class="cat-icon" aria-hidden="true">🤝</div>
+        <span class="cat-label">Perjanjian Kinerja</span>
+        <span class="cat-count">77 dokumen</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     STATISTIK SECTION
+     ============================================================ -->
+<section class="stats-section" aria-labelledby="statTitle">
+  <div class="container">
+    <div class="stats-grid" role="list" aria-label="Statistik dokumen JDIH">
+      <div class="stat-item" role="listitem">
+        <span class="num" aria-label="1248 total dokumen">1.248</span>
+        <p class="label">Total Dokumen</p>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="num" aria-label="87 dokumen baru tahun ini">87</span>
+        <p class="label">Dokumen Baru (2026)</p>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="num" aria-label="1.036 dokumen masih berlaku">1.036</span>
+        <p class="label">Masih Berlaku</p>
+      </div>
+      <div class="stat-item" role="listitem">
+        <span class="num" aria-label="212 dokumen telah dicabut">212</span>
+        <p class="label">Telah Dicabut</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     DOKUMEN TERBARU
+     ============================================================ -->
+<section class="section" aria-labelledby="recentTitle">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+      <div class="section-title" style="margin-bottom:0;">
+        <h2 id="recentTitle">Dokumen Terbaru</h2>
+        <p>Peraturan dan keputusan yang baru diterbitkan</p>
+      </div>
+      <a href="dokumen-peraturan-perundangan.html" class="btn btn-outline">Lihat Semua →</a>
+    </div>
+
+    <div style="background:var(--white); border:1.5px solid var(--gray-mid); border-radius:var(--radius-lg); overflow:hidden;">
+      <div class="recent-doc-item" style="padding:1rem 1.5rem; background:var(--navy); color:var(--white);">
+        <div style="display:flex; gap:2rem; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.7); width:100%;">
+          <span style="width:28px;"></span>
+          <span style="flex:1;">Judul Dokumen</span>
+          <span style="width:130px;">Jenis</span>
+          <span style="width:60px;">Tahun</span>
+          <span style="width:100px;">Status</span>
+          <span style="width:60px; text-align:center;">Unduh</span>
+        </div>
+      </div>
+
+      <article class="recent-doc-item" style="padding:1rem 1.5rem; display:flex; gap:2rem; align-items:center;">
+        <div class="recent-doc-num" aria-hidden="true">1</div>
+        <div style="flex:1; min-width:0;">
+          <div class="recent-doc-title">
+            <a href="dokumen-detail.html">Peraturan Bupati Sidoarjo Nomor 32 Tahun 2026 tentang Pengelolaan Kinerja Aparatur Sipil Negara</a>
+          </div>
+          <div class="recent-doc-meta">
+            <span>📅 12 Agustus 2026</span>
+            <span>📁 Peraturan Bupati</span>
+          </div>
+        </div>
+        <span style="width:130px;"><span class="tag tag-navy">Perbup</span></span>
+        <span style="width:60px; color:var(--gray-text); font-size:0.82rem;">2026</span>
+        <span style="width:100px;"><span class="badge badge-berlaku">● Berlaku</span></span>
+        <span style="width:60px; text-align:center;"><a href="#" class="download-icon" aria-label="Unduh PDF" title="Unduh PDF">📄</a></span>
+      </article>
+
+      <article class="recent-doc-item" style="padding:1rem 1.5rem; display:flex; gap:2rem; align-items:center; background:var(--gray-lightest);">
+        <div class="recent-doc-num" aria-hidden="true">2</div>
+        <div style="flex:1; min-width:0;">
+          <div class="recent-doc-title">
+            <a href="dokumen-detail.html">Keputusan Bupati Sidoarjo Nomor 821.2/4512/438.73/2026 tentang Pengangkatan PNS dalam Jabatan Fungsional</a>
+          </div>
+          <div class="recent-doc-meta">
+            <span>📅 5 Agustus 2026</span>
+            <span>📁 Keputusan Bupati</span>
+          </div>
+        </div>
+        <span style="width:130px;"><span class="tag tag-navy">Kepbup</span></span>
+        <span style="width:60px; color:var(--gray-text); font-size:0.82rem;">2026</span>
+        <span style="width:100px;"><span class="badge badge-berlaku">● Berlaku</span></span>
+        <span style="width:60px; text-align:center;"><a href="#" class="download-icon" aria-label="Unduh PDF" title="Unduh PDF">📄</a></span>
+      </article>
+
+      <article class="recent-doc-item" style="padding:1rem 1.5rem; display:flex; gap:2rem; align-items:center;">
+        <div class="recent-doc-num" aria-hidden="true">3</div>
+        <div style="flex:1; min-width:0;">
+          <div class="recent-doc-title">
+            <a href="dokumen-detail.html">Surat Edaran Kepala BKD Nomor 800/SE/073/438.73/2026 tentang Kewajiban Pengisian e-Kinerja</a>
+          </div>
+          <div class="recent-doc-meta">
+            <span>📅 28 Juli 2026</span>
+            <span>📁 Surat Edaran</span>
+          </div>
+        </div>
+        <span style="width:130px;"><span class="tag tag-navy">SE</span></span>
+        <span style="width:60px; color:var(--gray-text); font-size:0.82rem;">2026</span>
+        <span style="width:100px;"><span class="badge badge-berlaku">● Berlaku</span></span>
+        <span style="width:60px; text-align:center;"><a href="#" class="download-icon" aria-label="Unduh PDF" title="Unduh PDF">📄</a></span>
+      </article>
+
+      <article class="recent-doc-item" style="padding:1rem 1.5rem; display:flex; gap:2rem; align-items:center; background:var(--gray-lightest);">
+        <div class="recent-doc-num" aria-hidden="true">4</div>
+        <div style="flex:1; min-width:0;">
+          <div class="recent-doc-title">
+            <a href="dokumen-detail.html">Keputusan Kepala BKD Nomor 821/4109/438.73/2026 tentang Penetapan Tim Pengelola JDIH BKD Sidoarjo</a>
+          </div>
+          <div class="recent-doc-meta">
+            <span>📅 14 Juli 2026</span>
+            <span>📁 Keputusan Kepala BKD</span>
+          </div>
+        </div>
+        <span style="width:130px;"><span class="tag tag-navy">Kep. Kepala</span></span>
+        <span style="width:60px; color:var(--gray-text); font-size:0.82rem;">2026</span>
+        <span style="width:100px;"><span class="badge badge-berlaku">● Berlaku</span></span>
+        <span style="width:60px; text-align:center;"><a href="#" class="download-icon" aria-label="Unduh PDF" title="Unduh PDF">📄</a></span>
+      </article>
+
+      <article class="recent-doc-item" style="padding:1rem 1.5rem; display:flex; gap:2rem; align-items:center;">
+        <div class="recent-doc-num" aria-hidden="true">5</div>
+        <div style="flex:1; min-width:0;">
+          <div class="recent-doc-title">
+            <a href="dokumen-detail.html">Peraturan Bupati Sidoarjo Nomor 27 Tahun 2026 tentang Disiplin ASN di Lingkungan Pemerintah Kabupaten Sidoarjo</a>
+          </div>
+          <div class="recent-doc-meta">
+            <span>📅 2 Juli 2026</span>
+            <span>📁 Peraturan Bupati</span>
+          </div>
+        </div>
+        <span style="width:130px;"><span class="tag tag-navy">Perbup</span></span>
+        <span style="width:60px; color:var(--gray-text); font-size:0.82rem;">2026</span>
+        <span style="width:100px;"><span class="badge badge-berlaku">● Berlaku</span></span>
+        <span style="width:60px; text-align:center;"><a href="#" class="download-icon" aria-label="Unduh PDF" title="Unduh PDF">📄</a></span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BERITA TERKINI (preview)
+     ============================================================ -->
+<section class="section" style="background:var(--gray-lightest);" aria-labelledby="beritaTitle">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+      <div class="section-title" style="margin-bottom:0;">
+        <h2 id="beritaTitle">Berita & Informasi</h2>
+        <p>Informasi terbaru seputar kepegawaian dan hukum ASN</p>
+      </div>
+      <a href="berita.html" class="btn btn-outline">Semua Berita →</a>
+    </div>
+    <div class="berita-grid">
+      <article class="berita-card">
+        <div class="berita-thumbnail" aria-hidden="true">
+          📰
+          <span class="berita-date-badge">1 Sep 2026</span>
+        </div>
+        <div class="berita-body">
+          <div class="berita-category">Kepegawaian</div>
+          <h3 class="berita-title">
+            <a href="berita.html">Pelantikan 124 Pejabat Fungsional ASN di Lingkungan Pemkab Sidoarjo</a>
+          </h3>
+          <p class="berita-excerpt">Sebanyak 124 Aparatur Sipil Negara resmi dilantik dalam jabatan fungsional di berbagai perangkat daerah Kabupaten Sidoarjo dalam upacara yang dipimpin langsung oleh Bupati Sidoarjo.</p>
+          <div class="berita-footer">
+            <span>👤 Admin BKD</span>
+            <a href="berita.html" class="btn btn-sm btn-outline">Selengkapnya</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="berita-card">
+        <div class="berita-thumbnail" aria-hidden="true">
+          📢
+          <span class="berita-date-badge">28 Agu 2026</span>
+        </div>
+        <div class="berita-body">
+          <div class="berita-category">Regulasi</div>
+          <h3 class="berita-title">
+            <a href="berita.html">Sosialisasi Peraturan Bupati tentang Pengelolaan Kinerja ASN 2026</a>
+          </h3>
+          <p class="berita-excerpt">BKD Sidoarjo menggelar sosialisasi Perbup Nomor 32 Tahun 2026 tentang Pengelolaan Kinerja ASN kepada seluruh Kepala OPD dan pengelola kepegawaian se-Kabupaten Sidoarjo.</p>
+          <div class="berita-footer">
+            <span>👤 Admin BKD</span>
+            <a href="berita.html" class="btn btn-sm btn-outline">Selengkapnya</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="berita-card">
+        <div class="berita-thumbnail" aria-hidden="true">
+          🏆
+          <span class="berita-date-badge">20 Agu 2026</span>
+        </div>
+        <div class="berita-body">
+          <div class="berita-category">Penghargaan</div>
+          <h3 class="berita-title">
+            <a href="berita.html">JDIH BKD Sidoarjo Raih Predikat "Sangat Baik" dari JDIH BKN</a>
+          </h3>
+          <p class="berita-excerpt">Jaringan Dokumentasi dan Informasi Hukum BKD Kabupaten Sidoarjo berhasil meraih predikat "Sangat Baik" dalam evaluasi pengelolaan JDIH yang dilakukan oleh Badan Kepegawaian Negara tahun 2026.</p>
+          <div class="berita-footer">
+            <span>👤 Admin BKD</span>
+            <a href="berita.html" class="btn btn-sm btn-outline">Selengkapnya</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-main">
+      <!-- Brand -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div style="width:44px;height:44px;background:rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">⚖️</div>
+          <div>
+            <div class="footer-logo-text">BKD Kabupaten Sidoarjo</div>
+            <div class="footer-logo-sub">JDIH — Jaringan Dokumentasi Hukum</div>
+          </div>
+        </div>
+        <p>Badan Kepegawaian Daerah Kabupaten Sidoarjo berkomitmen menyediakan informasi hukum kepegawaian yang mudah diakses oleh seluruh masyarakat.</p>
+        <div>
+          <div class="footer-contact-item"><span class="icon">📍</span><span>Jl. Sultan Agung No. 1 Sidoarjo, Jawa Timur 61213</span></div>
+          <div class="footer-contact-item"><span class="icon">📞</span><span>(031) 8921508</span></div>
+          <div class="footer-contact-item"><span class="icon">✉️</span><span>bkd@sidoarjokab.go.id</span></div>
+        </div>
+      </div>
+
+      <!-- Tautan Cepat -->
+      <div class="footer-col">
+        <h4>Tautan Cepat</h4>
+        <div class="footer-links">
+          <a href="profil-tentang-kami.html">Tentang Kami</a>
+          <a href="profil-dasar-hukum.html">Dasar Hukum</a>
+          <a href="profil-tugas-fungsi.html">Tugas dan Fungsi</a>
+          <a href="profil-struktur-organisasi.html">Struktur Organisasi</a>
+          <a href="e-uji-publik.html">E-Uji Publik</a>
+          <a href="berita.html">Berita</a>
+        </div>
+      </div>
+
+      <!-- Dokumen Hukum -->
+      <div class="footer-col">
+        <h4>Dokumen Hukum</h4>
+        <div class="footer-links">
+          <a href="dokumen-peraturan-perundangan.html">Peraturan Bupati</a>
+          <a href="dokumen-peraturan-perundangan.html">Keputusan Bupati</a>
+          <a href="dokumen-peraturan-perundangan.html">Keputusan Kepala BKD</a>
+          <a href="dokumen-peraturan-perundangan.html">Surat Edaran</a>
+          <a href="dokumen-monografi-hukum.html">Monografi Hukum</a>
+          <a href="dokumen-artikel-hukum.html">Artikel Hukum</a>
+          <a href="dokumen-putusan.html">Putusan</a>
+        </div>
+      </div>
+
+      <!-- Tautan Silang -->
+      <div class="footer-col">
+        <h4>Tautan Silang</h4>
+        <div class="footer-links">
+          <a href="https://bkd.sidoarjokab.go.id" target="_blank" rel="noopener">Profil BKD</a>
+          <a href="https://bkd.sidoarjokab.go.id/ppid" target="_blank" rel="noopener">PPID BKD</a>
+          <a href="https://bkd.sidoarjokab.go.id/pengaduan" target="_blank" rel="noopener">Pengaduan</a>
+          <a href="https://jdih.bkn.go.id" target="_blank" rel="noopener">JDIH BKN</a>
+          <a href="https://jdih.sidoarjokab.go.id" target="_blank" rel="noopener">JDIH Sidoarjo</a>
+        </div>
+        <div style="margin-top:1.25rem;">
+          <h4 style="font-size:0.85rem; margin-bottom:0.75rem; border:none; display:block;">Media Sosial</h4>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook BKD Sidoarjo" title="Facebook">f</a>
+            <a href="#" class="social-link" aria-label="Instagram BKD Sidoarjo" title="Instagram">ig</a>
+            <a href="#" class="social-link" aria-label="Twitter BKD Sidoarjo" title="Twitter">tw</a>
+            <a href="#" class="social-link" aria-label="YouTube BKD Sidoarjo" title="YouTube">▶</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <p>© 2026 Badan Kepegawaian Daerah Kabupaten Sidoarjo. Hak cipta dilindungi.</p>
+      <p>Dikembangkan oleh <a href="#">Bidang Informasi BKD Sidoarjo</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     FLOATING AKSESIBILITAS BUTTON
+     ============================================================ -->
+<a href="#" class="accessibility-btn" id="accessBtn" aria-label="Fitur Aksesibilitas" title="Aksesibilitas" role="button">
+  ♿
+  <span class="tooltip">Aksesibilitas</span>
+</a>
+
+<!-- ============================================================
+     JAVASCRIPT (minimal — toggle navigasi mobile & voice search)
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // --- Hamburger Toggle ---
+  var hamburger = document.getElementById('hamburgerBtn');
+  var nav = document.getElementById('jdihNav');
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function() {
+      var isOpen = nav.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
+
+  // --- Dropdown & Submenu Toggle (mobile) ---
+  var isMobile = function() { return window.innerWidth <= 768; };
+
+  document.querySelectorAll('.has-dropdown > button').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      if (!isMobile()) return;
+      e.stopPropagation();
+      var li = btn.parentElement;
+      var isOpen = li.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+
+  document.querySelectorAll('.has-submenu > button').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var li = btn.parentElement;
+      var isOpen = li.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+
+  // --- Voice Search State Toggle ---
+  var voiceBtn = document.getElementById('voiceSearchBtn');
+  if (voiceBtn) {
+    voiceBtn.addEventListener('click', function() {
+      var active = voiceBtn.classList.toggle('active');
+      voiceBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      voiceBtn.textContent = active ? '🔴' : '🎙️';
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

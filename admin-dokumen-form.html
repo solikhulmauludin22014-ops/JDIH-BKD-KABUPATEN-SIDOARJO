@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Dokumen — Admin JDIH BKD Sidoarjo</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="admin-body">
+
+<!-- SIDEBAR -->
+<aside class="admin-sidebar" id="adminSidebar" aria-label="Sidebar Admin">
+  <div class="sidebar-header">
+    <div class="sidebar-logo" aria-label="Logo BKD">🦐</div>
+    <div class="sidebar-brand"><span class="brand-name">BKD Sidoarjo</span><span class="brand-role">Administrator</span></div>
+  </div>
+  <nav class="sidebar-nav" aria-label="Menu Admin">
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Setting</div>
+      <a href="#" class="sidebar-item"><span class="item-icon">📊</span><span class="item-label">Dashboard</span></a>
+      <a href="#" class="sidebar-item"><span class="item-icon">🔐</span><span class="item-label">Roles</span></a>
+      <a href="#" class="sidebar-item"><span class="item-icon">🖼️</span><span class="item-label">Layout</span></a>
+      <button class="sidebar-item" onclick="toggleSubmenu('submenuWeb',this)" aria-expanded="false" aria-controls="submenuWeb"><span class="item-icon">🌐</span><span class="item-label">Web</span><span class="item-arrow">▶</span></button>
+      <div class="sidebar-submenu" id="submenuWeb"><a href="#" class="sidebar-sub-item">Banner</a><a href="admin-menu-jdih.html" class="sidebar-sub-item">Menu</a><a href="#" class="sidebar-sub-item">Kategori</a><a href="#" class="sidebar-sub-item">Link Terkait</a><a href="#" class="sidebar-sub-item">urlAPI</a></div>
+      <a href="#" class="sidebar-item"><span class="item-icon">🏛️</span><span class="item-label">OPD</span></a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Publikasi</div>
+      <a href="admin-dokumen-list.html" class="sidebar-item active" aria-current="page"><span class="item-icon">📄</span><span class="item-label">Dokumen Hukum</span></a>
+      <a href="admin-master-data.html" class="sidebar-item"><span class="item-icon">🗂️</span><span class="item-label">Master Data</span></a>
+      <a href="admin-profil-jdih.html" class="sidebar-item"><span class="item-icon">👤</span><span class="item-label">Profil JDIH</span></a>
+      <a href="admin-e-uji-publik.html" class="sidebar-item"><span class="item-icon">📋</span><span class="item-label">E-Uji Publik</span></a>
+      <a href="admin-berita.html" class="sidebar-item"><span class="item-icon">📰</span><span class="item-label">Berita</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="sidebar-footer-btn" aria-label="Pesan">💬</button>
+    <button class="sidebar-footer-btn" aria-label="Bahasa">🌐</button>
+    <button class="sidebar-footer-btn" aria-label="Kontak">📞</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="admin-main">
+  <div class="admin-topbar">
+    <button class="topbar-hamburger" onclick="document.getElementById('adminSidebar').classList.toggle('open')" aria-label="Toggle Sidebar"><span></span><span></span><span></span></button>
+    <div class="topbar-right">
+      <div class="topbar-notif" aria-label="Notifikasi">🔔<span class="notif-dot"></span></div>
+      <div class="topbar-avatar" aria-label="Admin">🔑</div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <nav class="admin-breadcrumb" aria-label="Breadcrumb">
+      <span class="home-icon">🏠</span>
+      <a href="#">Publikasi</a>
+      <span class="sep">›</span>
+      <a href="admin-dokumen-list.html">Dokumen Hukum</a>
+      <span class="sep">›</span>
+      <span class="current">Tambah Dokumen</span>
+    </nav>
+
+    <div class="admin-page-header">
+      <div>
+        <div class="admin-page-title">📝 Tambah / Edit Dokumen</div>
+        <div class="admin-page-subtitle">Isi semua field yang diperlukan dan unggah file PDF dokumen</div>
+      </div>
+      <a href="admin-dokumen-list.html" class="btn-admin-outline">← Kembali ke Daftar</a>
+    </div>
+
+    <form action="#" method="post" enctype="multipart/form-data">
+      <!-- ============================================================
+           SECTION 1: Informasi Utama
+           ============================================================ -->
+      <div class="admin-card" style="margin-bottom:1.25rem;">
+        <div class="admin-card-header">
+          <div class="admin-card-title">📋 Informasi Utama Dokumen</div>
+        </div>
+        <div class="admin-card-body">
+          <div class="admin-form-grid" style="margin-bottom:1.25rem;">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="nomorDok">Nomor Dokumen <span class="required">*</span></label>
+              <input class="admin-form-control" id="nomorDok" type="text" placeholder="cth. 32/2026 atau 821.2/4512/438.73/2026" value="32/2026" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tahunDok">Tahun Terbit <span class="required">*</span></label>
+              <select class="admin-form-control" id="tahunDok">
+                <option>2026</option><option>2025</option><option>2024</option>
+                <option>2023</option><option>2022</option><option>2021</option>
+              </select>
+            </div>
+            <div class="admin-form-group col-span-full">
+              <label class="admin-form-label" for="judulDok">Judul / Tentang <span class="required">*</span></label>
+              <input class="admin-form-control" id="judulDok" type="text" placeholder="Judul lengkap dokumen" value="Peraturan Bupati Sidoarjo Nomor 32 Tahun 2026 tentang Pengelolaan Kinerja Aparatur Sipil Negara di Lingkungan Pemerintah Kabupaten Sidoarjo" />
+            </div>
+            <div class="admin-form-group col-span-full">
+              <label class="admin-form-label" for="abstrakDok">Abstrak / Ringkasan</label>
+              <textarea class="admin-form-control" id="abstrakDok" rows="4" placeholder="Tuliskan ringkasan isi dokumen…">Peraturan ini ditetapkan sebagai tindak lanjut atas amanat PP Nomor 30 Tahun 2019 dan Permenpan-RB Nomor 6 Tahun 2022, yang mewajibkan setiap instansi pemerintah daerah menetapkan regulasi teknis pengelolaan kinerja ASN di tingkat kabupaten/kota.</textarea>
+            </div>
+          </div>
+
+          <div class="admin-form-grid cols-3">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="kategoriDok">Kategori Utama <span class="required">*</span></label>
+              <select class="admin-form-control" id="kategoriDok">
+                <option>-- Pilih Kategori --</option>
+                <option selected>Peraturan Perundang-undangan</option>
+                <option>Monografi Hukum</option>
+                <option>Artikel Hukum</option>
+                <option>Putusan</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="jenisDok">Jenis Dokumen <span class="required">*</span></label>
+              <select class="admin-form-control" id="jenisDok">
+                <option>-- Pilih Jenis --</option>
+                <option selected>Peraturan Bupati</option>
+                <option>Keputusan Bupati</option>
+                <option>Keputusan Kepala BKD</option>
+                <option>Surat Edaran</option>
+                <option>Perjanjian Kinerja</option>
+                <option>Putusan PTUN</option>
+                <option>Putusan Mahkamah Agung</option>
+                <option>Monografi</option>
+                <option>Artikel Ilmiah</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="bidangDok">Bidang <span class="required">*</span></label>
+              <select class="admin-form-control" id="bidangDok">
+                <option>-- Pilih Bidang --</option>
+                <option selected>Kepegawaian</option>
+                <option>Kinerja ASN</option>
+                <option>Disiplin ASN</option>
+                <option>Pengembangan Kompetensi</option>
+                <option>Mutasi &amp; Pensiun</option>
+                <option>Hukum Administrasi</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tglPenetapan">Tanggal Penetapan <span class="required">*</span></label>
+              <input class="admin-form-control" id="tglPenetapan" type="date" value="2026-08-12" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tglDisundangkan">Tanggal Diundangkan</label>
+              <input class="admin-form-control" id="tglDisundangkan" type="date" value="2026-08-14" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="sumberDok">Sumber</label>
+              <input class="admin-form-control" id="sumberDok" type="text" placeholder="cth. Bagian Hukum Setda" value="Bagian Hukum Setda Kab. Sidoarjo" />
+            </div>
+            <div class="admin-form-group col-span-full">
+              <label class="admin-form-label">Status Berlaku <span class="required">*</span></label>
+              <div class="admin-radio-group" role="radiogroup">
+                <label class="admin-radio-option"><input type="radio" name="statusDok" value="berlaku" checked /> Berlaku</label>
+                <label class="admin-radio-option"><input type="radio" name="statusDok" value="dicabut" /> Dicabut</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION 2: Upload File
+           ============================================================ -->
+      <div class="admin-card" style="margin-bottom:1.25rem;">
+        <div class="admin-card-header">
+          <div class="admin-card-title">📁 Upload Berkas</div>
+        </div>
+        <div class="admin-card-body">
+          <div class="admin-form-grid">
+            <div class="admin-form-group col-span-full">
+              <label class="admin-form-label" for="uploadPdf">File PDF Dokumen <span class="required">*</span></label>
+              <label class="admin-upload-zone" for="uploadPdf">
+                <div class="upload-icon" aria-hidden="true">📄</div>
+                <div class="upload-text">Klik atau seret file PDF ke sini</div>
+                <div class="upload-hint">Format: PDF · Maks. 10 MB</div>
+                <input type="file" id="uploadPdf" accept=".pdf" aria-label="Upload file PDF" />
+              </label>
+              <div class="admin-form-hint">File saat ini: <strong>perbup-32-2026-kinerja-asn.pdf</strong> (2.4 MB) — <a href="#" style="color:var(--admin-blue);">Lihat</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION 3: Tanda Tangan Elektronik
+           ============================================================ -->
+      <div class="admin-card" style="margin-bottom:1.25rem;">
+        <div class="admin-card-header">
+          <div class="admin-card-title">🔐 Tanda Tangan Elektronik</div>
+        </div>
+        <div class="admin-card-body">
+          <div class="admin-info-box">
+            <span aria-hidden="true">ℹ️</span>
+            <span>Informasi tanda tangan elektronik diambil dari metadata PDF yang diunggah. Pastikan dokumen telah ditandatangani secara elektronik melalui BSrE (Balai Sertifikasi Elektronik BSSN).</span>
+          </div>
+          <div class="admin-form-grid cols-3">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tteTanda">Ditandatangani Oleh</label>
+              <input class="admin-form-control" id="tteTanda" type="text" value="Bupati Sidoarjo" placeholder="Nama penandatangan" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tteTanggal">Tanggal TTE</label>
+              <input class="admin-form-control" id="tteTanggal" type="date" value="2026-08-12" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="tteCertNo">Nomor Sertifikat</label>
+              <input class="admin-form-control" id="tteCertNo" type="text" value="5.2026.08.12.001" placeholder="No. sertifikat TTE" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION 4: Field Kondisional — Monografi
+           ============================================================ -->
+      <div class="admin-form-section" style="margin-bottom:1.25rem;" id="sectionMonografi">
+        <div class="admin-form-section-title">📘 Data Tambahan: Monografi Hukum</div>
+        <div class="admin-form-grid">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="pengarang">Pengarang / Penulis</label>
+            <input class="admin-form-control" id="pengarang" type="text" placeholder="Nama pengarang lengkap" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="penerbit">Penerbit</label>
+            <input class="admin-form-control" id="penerbit" type="text" placeholder="Nama penerbit" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="isbn">ISBN / ISSN</label>
+            <input class="admin-form-control" id="isbn" type="text" placeholder="cth. 978-602-XXXX-XX-X" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="coverBuku">Upload Sampul Buku</label>
+            <label class="admin-upload-zone" for="coverBuku" style="padding:1rem;">
+              <div class="upload-icon" style="font-size:1.2rem;" aria-hidden="true">🖼️</div>
+              <div class="upload-text" style="font-size:0.78rem;">Klik untuk upload cover JPG/PNG</div>
+              <input type="file" id="coverBuku" accept=".jpg,.png,.webp" aria-label="Upload cover buku" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION 5: Field Kondisional — Artikel
+           ============================================================ -->
+      <div class="admin-form-section" style="margin-bottom:1.25rem;" id="sectionArtikel">
+        <div class="admin-form-section-title">📝 Data Tambahan: Artikel Hukum</div>
+        <div class="admin-form-grid">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="penulisArtikel">Penulis</label>
+            <input class="admin-form-control" id="penulisArtikel" type="text" placeholder="Nama penulis artikel" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="tglPublikasi">Tanggal Publikasi</label>
+            <input class="admin-form-control" id="tglPublikasi" type="date" />
+          </div>
+          <div class="admin-form-group col-span-full">
+            <label class="admin-form-label" for="ringkasanArtikel">Ringkasan / Lead Artikel</label>
+            <textarea class="admin-form-control" id="ringkasanArtikel" rows="3" placeholder="Ringkasan singkat artikel (maks. 200 kata)…"></textarea>
+          </div>
+          <div class="admin-form-group col-span-full">
+            <label class="admin-form-label" for="thumbnailArtikel">Upload Thumbnail Artikel</label>
+            <label class="admin-upload-zone" for="thumbnailArtikel" style="padding:1rem;">
+              <div class="upload-icon" style="font-size:1.2rem;" aria-hidden="true">🖼️</div>
+              <div class="upload-text" style="font-size:0.78rem;">Klik untuk upload thumbnail JPG/PNG (rasio 16:9 disarankan)</div>
+              <input type="file" id="thumbnailArtikel" accept=".jpg,.png,.webp" aria-label="Upload thumbnail artikel" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION 6: Field Kondisional — Putusan
+           ============================================================ -->
+      <div class="admin-form-section" style="margin-bottom:1.25rem;" id="sectionPutusan">
+        <div class="admin-form-section-title">⚖️ Data Tambahan: Putusan</div>
+        <div class="admin-form-grid">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="nomorPutusan">Nomor Putusan</label>
+            <input class="admin-form-control" id="nomorPutusan" type="text" placeholder="cth. No. 47/G/2026/PTUN.SBY" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="jenisPutusan">Jenis Putusan</label>
+            <select class="admin-form-control" id="jenisPutusan">
+              <option>-- Pilih --</option>
+              <option>PTUN Surabaya</option>
+              <option>Mahkamah Agung</option>
+              <option>KASN</option>
+              <option>BAWASLU</option>
+            </select>
+          </div>
+          <div class="admin-form-group col-span-full">
+            <label class="admin-form-label" for="perihalPutusan">Perihal / Pokok Sengketa</label>
+            <textarea class="admin-form-control" id="perihalPutusan" rows="2" placeholder="Uraian singkat perihal putusan…"></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="tglPutusan">Tanggal Putusan</label>
+            <input class="admin-form-control" id="tglPutusan" type="date" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="statusPutusan">Status Putusan</label>
+            <select class="admin-form-control" id="statusPutusan">
+              <option>Inkracht</option>
+              <option>Banding</option>
+              <option>Kasasi</option>
+              <option>Ditolak</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="admin-form-actions">
+        <button type="submit" class="btn-admin-primary">💾 Simpan Dokumen</button>
+        <a href="admin-dokumen-list.html" class="btn-admin-outline">Batal</a>
+        <button type="button" class="btn-admin-outline" style="margin-left:auto; color:var(--admin-muted); border-color:var(--admin-border);">Simpan sebagai Draft</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleSubmenu(id,btn){var el=document.getElementById(id);var isOpen=el.classList.toggle('open');if(btn){btn.classList.toggle('expanded',isOpen);btn.setAttribute('aria-expanded',isOpen?'true':'false');}}
+</script>
+</body>
+</html>
