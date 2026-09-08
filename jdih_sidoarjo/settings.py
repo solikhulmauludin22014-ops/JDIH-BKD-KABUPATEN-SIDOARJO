@@ -31,13 +31,14 @@ else:
 
 # Ensure localhost, testserver, and vercel are always permitted if not wildcard
 if '*' not in ALLOWED_HOSTS:
-    for default_host in ['localhost', '127.0.0.1', 'testserver', '.vercel.app']:
+    for default_host in ['localhost', '127.0.0.1', 'testserver', '.vercel.app', 'jdih-bkd-kabupaten-sidoarjo.vercel.app']:
         if default_host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(default_host)
 
 # CSRF Trusted Origins for Vercel and local
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
+    'https://jdih-bkd-kabupaten-sidoarjo.vercel.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
@@ -139,6 +140,7 @@ FIREBASE_SERVICE_ACCOUNT_JSON = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
 FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', str(BASE_DIR / 'serviceAccountKey.json'))
 
 # Firebase Client Web Config (for Admin Login)
-FIREBASE_WEB_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', '')
-FIREBASE_AUTH_DOMAIN = os.environ.get('FIREBASE_AUTH_DOMAIN', '')
-FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '')
+FIREBASE_WEB_API_KEY = os.environ.get('FIREBASE_WEB_API_KEY', 'AIzaSyAbtuIz-ygp4YB_h-G73mnLMSvKzX96S7s')
+FIREBASE_AUTH_DOMAIN = os.environ.get('FIREBASE_AUTH_DOMAIN', 'jdih-bkd-sidoarjo.firebaseapp.com')
+FIREBASE_APP_ID = os.environ.get('FIREBASE_APP_ID', '1:319941227618:web:8c328fd9df614ac8934d3b')
+FIREBASE_MESSAGING_SENDER_ID = os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '319941227618')

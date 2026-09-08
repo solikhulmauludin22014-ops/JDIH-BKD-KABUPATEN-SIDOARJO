@@ -21,6 +21,7 @@ def institution_context(request):
             'authDomain': getattr(settings, 'FIREBASE_AUTH_DOMAIN', ''),
             'projectId': getattr(settings, 'FIREBASE_PROJECT_ID', ''),
             'storageBucket': getattr(settings, 'FIREBASE_STORAGE_BUCKET', ''),
+            'messagingSenderId': getattr(settings, 'FIREBASE_MESSAGING_SENDER_ID', '319941227618'),
             'appId': getattr(settings, 'FIREBASE_APP_ID', ''),
         }
     }

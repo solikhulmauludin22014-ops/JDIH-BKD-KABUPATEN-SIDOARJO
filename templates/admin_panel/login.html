@@ -160,6 +160,8 @@
             apiKey: "{{ FIREBASE_WEB_CONFIG.apiKey }}",
             authDomain: "{{ FIREBASE_WEB_CONFIG.authDomain }}",
             projectId: "{{ FIREBASE_WEB_CONFIG.projectId }}",
+            storageBucket: "{{ FIREBASE_WEB_CONFIG.storageBucket }}",
+            messagingSenderId: "{{ FIREBASE_WEB_CONFIG.messagingSenderId }}",
             appId: "{{ FIREBASE_WEB_CONFIG.appId }}"
         };
 
@@ -241,6 +243,10 @@
                         errorMsg = "Akun pengelola ini telah dinonaktifkan oleh administrator.";
                     } else if (code === 'auth/network-request-failed') {
                         errorMsg = "Gagal terhubung ke server autentikasi. Pastikan koneksi internet aktif.";
+                    } else if (code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key-not-valid'))) {
+                        errorMsg = "Web API Key Firebase tidak valid. Pastikan Web API Key dari Firebase Console sudah terpasang di Environment Variables Vercel.";
+                    } else if (code === 'auth/unauthorized-domain' || (err.message && err.message.includes('authorized-domain'))) {
+                        errorMsg = "Domain ini belum diizinkan. Silakan tambahkan domain vercel.app ke Authorized Domains di Firebase Console -> Authentication -> Settings.";
                     } else if (code === 'auth/operation-not-allowed' || (err.message && err.message.includes('CONFIGURATION_NOT_FOUND'))) {
                         errorMsg = "Metode login Email/Password belum diaktifkan di Firebase Console. Pastikan Sign-in method diaktifkan.";
                     } else {

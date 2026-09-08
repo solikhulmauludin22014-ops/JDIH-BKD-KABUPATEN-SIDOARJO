@@ -3,169 +3,347 @@
 {% block title %}JDIH BKD Kabupaten Sidoarjo - Jaringan Dokumentasi & Informasi Hukum Kepegawaian{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-    <!-- Header Ringkas & Branding -->
-    <div class="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-bold mb-2">
-                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                <span>Basis Data Regulasi Kepegawaian Resmi</span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-950 tracking-tight">
-                Pencarian Produk Hukum JDIH BKD Sidoarjo
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                Cari, telaah isi keputusan/peraturan, dan unduh salinan resmi naskah hukum kepegawaian Kabupaten Sidoarjo.
-            </p>
-        </div>
+<!-- Nextly-Inspired Modern Hero Section -->
+<section class="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/50 pt-8 pb-14 sm:pt-14 sm:pb-20 lg:pt-16 lg:pb-24 border-b border-slate-200/70">
+    <!-- Subtle Background Glows -->
+    <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-indigo-200/40 to-blue-200/30 blur-3xl rounded-full opacity-60"></div>
+    <div class="pointer-events-none absolute top-1/3 -right-24 w-80 h-80 bg-blue-100/40 blur-3xl rounded-full opacity-50"></div>
 
-        <!-- Quick Metrics Badges (Ringkas) -->
-        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
-                Total: <strong class="text-blue-700">{{ stats.total_documents }}</strong>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
-                Perbup: <strong class="text-blue-700">{{ stats.perbup_count }}</strong>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
-                SK: <strong class="text-blue-700">{{ stats.sk_count }}</strong>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
-                SE: <strong class="text-blue-700">{{ stats.se_count }}</strong>
-            </span>
-        </div>
-    </div>
-
-    <!-- Unified Search & Filter Card (Elemen Utama Halaman) -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 mb-8">
-        <form id="filter-form"
-              hx-get="{% url 'documents:search' %}"
-              hx-trigger="change, submit"
-              hx-target="#documents-container"
-              hx-indicator="#loading-indicator"
-              hx-push-url="true"
-              onsubmit="event.preventDefault();">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
-            <!-- Primary Search Input -->
-            <div class="mb-5">
-                <label for="search-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    Cari Dokumen Hukum
-                </label>
-                <div class="relative flex items-center">
-                    <div class="absolute left-4 text-slate-400 pointer-events-none">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    <input type="text"
-                           name="q"
-                           id="search-input"
-                           value="{{ search_query }}"
-                           placeholder="Ketik judul regulasi, nomor naskah, atau kata kunci (contoh: Kinerja, 42 Tahun 2023, PPPK, Disiplin)..."
-                           class="w-full pl-12 pr-28 py-3.5 rounded-2xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-inner bg-slate-50/50 hover:bg-white transition"
-                           hx-get="{% url 'documents:search' %}"
-                           hx-trigger="keyup changed delay:300ms, search"
-                           hx-target="#documents-container"
-                           hx-indicator="#loading-indicator"
-                           hx-push-url="true">
-                    
-                    <button type="submit"
-                            class="absolute right-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5">
-                        <span>Cari</span>
-                    </button>
+            <!-- Hero Left Column: Headline, Subtext, CTA -->
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <!-- Pill Badge -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-800 text-xs font-bold tracking-wide shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span>PORTAL RESMI JDIH KABUPATEN SIDOARJO</span>
                 </div>
-            </div>
 
-            <!-- Filter Controls Row -->
-            <div class="pt-4 border-t border-slate-100">
-                <div class="flex items-center justify-between gap-4 mb-3">
-                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                        </svg>
-                        <span>Filter Parameter</span>
+                <!-- Big Bold Headline -->
+                <h1 class="text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-slate-900 leading-[1.15]">
+                    Dokumentasi & Regulasi <br class="hidden sm:inline">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-600">
+                        Hukum Kepegawaian
                     </span>
+                    Terpercaya
+                </h1>
 
-                    <a href="{% url 'documents:index' %}" class="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                <!-- Crisp Subtext -->
+                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
+                    Akses terpadu seluruh naskah Peraturan Bupati, Keputusan (SK), dan Surat Edaran Badan Kepegawaian Daerah Kabupaten Sidoarjo secara terbuka, akurat, dan dapat diunduh langsung.
+                </p>
+
+                <!-- Action CTAs -->
+                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+                    <a href="#pencarian-dokumen"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all transform active:scale-98">
+                        <span>Cari Dokumen Regulasi</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                         </svg>
-                        <span>Reset Filter</span>
+                    </a>
+
+                    <a href="https://sidoarjokab.go.id" target="_blank" rel="noopener"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100/80 text-slate-700 font-semibold text-sm border border-slate-300 shadow-xs transition">
+                        <span>Portal Pemkab Sidoarjo</span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                     </a>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <!-- Jenis Dokumen -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jenis Dokumen</label>
-                        <select name="jenis" id="filter-jenis" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                            <option value="">Semua Jenis Regulasi</option>
-                            {% for code, label in document_types %}
-                                <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- Feature Mini Bullets -->
+                <div class="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-semibold text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        <span>Preview & Unduh PDF Asli</span>
                     </div>
-
-                    <!-- Tahun Terbit -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Tahun Terbit</label>
-                        <select name="tahun" id="filter-tahun" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                            <option value="">Semua Tahun</option>
-                            {% for yr in available_years %}
-                                <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        <span>Pencarian Real-Time (HTMX)</span>
                     </div>
-
-                    <!-- Kategori Kepegawaian -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Kategori Kepegawaian</label>
-                        <select name="kategori" id="filter-kategori" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                            <option value="">Semua Kategori</option>
-                            {% for cat in categories %}
-                                <option value="{{ cat }}" {% if selected_kategori == cat %}selected{% endif %}>{{ cat }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Status Dokumen -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Status Hukum</label>
-                        <select name="status" id="filter-status" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                            <option value="semua" {% if selected_status == 'semua' or not selected_status %}selected{% endif %}>Semua Status</option>
-                            <option value="berlaku" {% if selected_status == 'berlaku' %}selected{% endif %}>Hanya Berlaku</option>
-                            <option value="diubah" {% if selected_status == 'diubah' %}selected{% endif %}>Diubah</option>
-                            <option value="dicabut" {% if selected_status == 'dicabut' %}selected{% endif %}>Dicabut</option>
-                        </select>
-                    </div>
-
-                    <!-- Urutkan -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Urutan Hasil</label>
-                        <select name="sort" id="filter-sort" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                            <option value="terbaru" {% if selected_sort == 'terbaru' %}selected{% endif %}>Terbaru Diterbitkan</option>
-                            <option value="populer" {% if selected_sort == 'populer' %}selected{% endif %}>Paling Sering Dilihat</option>
-                            <option value="tahun_desc" {% if selected_sort == 'tahun_desc' %}selected{% endif %}>Tahun (Baru ke Lama)</option>
-                            <option value="tahun_asc" {% if selected_sort == 'tahun_asc' %}selected{% endif %}>Tahun (Lama ke Baru)</option>
-                        </select>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        <span>Standar Integrasi JDIHN</span>
                     </div>
                 </div>
             </div>
-        </form>
-    </div>
 
-    <!-- HTMX Loading Indicator Bar -->
-    <div id="loading-indicator" class="htmx-indicator mb-6">
-        <div class="flex items-center justify-center gap-3 py-3.5 bg-blue-50/80 rounded-2xl text-blue-800 text-xs font-semibold border border-blue-100">
-            <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Memperbarui daftar dokumen regulasi...</span>
+            <!-- Hero Right Column: Flat-Style Vector Illustration & Floating Cards -->
+            <div class="lg:col-span-5 relative flex justify-center lg:justify-end">
+                <div class="relative w-full max-w-md">
+                    <!-- Decorative Backdrop Circle -->
+                    <div class="absolute -inset-2 bg-gradient-to-tr from-indigo-500/20 via-blue-500/10 to-sky-400/20 rounded-3xl filter blur-xl opacity-70"></div>
+                    
+                    <!-- Main Flat-Style Vector Graphic Card -->
+                    <div class="relative bg-gradient-to-br from-white via-slate-50 to-indigo-50/40 rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-2xl shadow-indigo-950/10">
+                        <!-- SVG Illustration: Digital Legal Repository -->
+                        <svg class="w-full h-auto text-indigo-600 drop-shadow-sm" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background base plate -->
+                            <rect x="20" y="30" width="360" height="260" rx="20" fill="#EEF2FF" />
+                            <rect x="25" y="35" width="350" height="250" rx="16" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" />
+                            
+                            <!-- Folder / Shelf Structure -->
+                            <rect x="50" y="70" width="300" height="42" rx="10" fill="#FFFFFF" stroke="#E0E7FF" stroke-width="2"/>
+                            <circle cx="75" cy="91" r="10" fill="#4F46E5"/>
+                            <path d="M72 91l2 2 4-4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="95" y="84" width="130" height="6" rx="3" fill="#334155"/>
+                            <rect x="95" y="94" width="70" height="4" rx="2" fill="#94A3B8"/>
+                            <rect x="280" y="81" width="55" height="20" rx="6" fill="#DEF7EC"/>
+                            <text x="290" y="95" font-family="sans-serif" font-size="9" font-weight="bold" fill="#03543F">BERLAKU</text>
+
+                            <!-- Document 2 -->
+                            <rect x="50" y="124" width="300" height="42" rx="10" fill="#FFFFFF" stroke="#E0E7FF" stroke-width="2"/>
+                            <circle cx="75" cy="145" r="10" fill="#2563EB"/>
+                            <path d="M75 140v10m-5-5h10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="95" y="138" width="150" height="6" rx="3" fill="#334155"/>
+                            <rect x="95" y="148" width="90" height="4" rx="2" fill="#94A3B8"/>
+                            <rect x="280" y="135" width="55" height="20" rx="6" fill="#EEF2FF"/>
+                            <text x="292" y="149" font-family="sans-serif" font-size="9" font-weight="bold" fill="#3730A3">PERBUP</text>
+
+                            <!-- Document 3 -->
+                            <rect x="50" y="178" width="300" height="42" rx="10" fill="#FFFFFF" stroke="#E0E7FF" stroke-width="2"/>
+                            <circle cx="75" cy="199" r="10" fill="#7C3AED"/>
+                            <path d="M72 199l2 2 4-4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="95" y="192" width="120" height="6" rx="3" fill="#334155"/>
+                            <rect x="95" y="202" width="80" height="4" rx="2" fill="#94A3B8"/>
+                            <rect x="280" y="189" width="55" height="20" rx="6" fill="#FEF3C7"/>
+                            <text x="294" y="203" font-family="sans-serif" font-size="9" font-weight="bold" fill="#92400E">SK BKD</text>
+
+                            <!-- Bottom Status Bar -->
+                            <rect x="50" y="235" width="300" height="35" rx="8" fill="#F1F5F9"/>
+                            <circle cx="68" cy="252" r="5" fill="#10B981"/>
+                            <text x="80" y="255" font-family="sans-serif" font-size="10" font-weight="600" fill="#475569">JDIH BKD Sidoarjo • Sinkronisasi Cloud</text>
+                            <path d="M320 248l4 4 8-8" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+
+                        <!-- Floating Micro Badges (Nextly Aesthetic) -->
+                        <div class="absolute -top-4 -right-3 sm:-right-4 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/90 shadow-lg flex items-center gap-2 text-xs font-bold text-slate-800">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span>100% Digital & Terbuka</span>
+                        </div>
+
+                        <div class="absolute -bottom-4 -left-3 sm:-left-4 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200/90 shadow-lg flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                            <div class="w-7 h-7 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-slate-400 font-medium">Validasi</div>
+                                <div class="font-bold text-slate-900 text-xs">Arsip Resmi ASN</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
+</section>
 
-    <!-- Document Catalog Results (Targeted by HTMX) -->
-    {% include "documents/partials/document_list.html" %}
-</div>
+<!-- Nextly-Style "Trusted By" Metrics Strip -->
+<section class="border-b border-slate-200/80 bg-white py-8 sm:py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-6">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Statistik Koleksi Naskah Hukum Kepegawaian Sidoarjo
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <!-- Metric 1: Total Dokumen -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
+                <div class="text-3xl sm:text-4xl font-black text-indigo-600 tracking-tight">
+                    {{ stats.total_documents }}
+                </div>
+                <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
+                    Total Dokumen
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Semua Regulasi Terindeks</div>
+            </div>
+
+            <!-- Metric 2: Perbup -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
+                <div class="text-3xl sm:text-4xl font-black text-blue-600 tracking-tight">
+                    {{ stats.perbup_count }}
+                </div>
+                <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
+                    Peraturan Bupati
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Perbup Kepegawaian</div>
+            </div>
+
+            <!-- Metric 3: SK BKD / Bupati -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
+                <div class="text-3xl sm:text-4xl font-black text-purple-600 tracking-tight">
+                    {{ stats.sk_count }}
+                </div>
+                <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
+                    Keputusan (SK)
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Keputusan Resmi BKD</div>
+            </div>
+
+            <!-- Metric 4: Surat Edaran -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
+                <div class="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight">
+                    {{ stats.se_count }}
+                </div>
+                <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
+                    Surat Edaran
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Pedoman & Instruksi SE</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Document Search & Filter Section (Nextly Whitespace & Rounded Cards) -->
+<section id="pencarian-dokumen" class="py-10 sm:py-14 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Section Title & Description -->
+        <div class="text-center max-w-2xl mx-auto mb-8">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Pencarian Dokumen & Regulasi
+            </h2>
+            <p class="text-sm text-slate-500 mt-2">
+                Gunakan kotak pencarian atau saring berdasarkan jenis naskah, tahun terbit, dan kategori hukum kepegawaian.
+            </p>
+        </div>
+
+        <!-- Floating Search & Filter Card -->
+        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-5 sm:p-8 mb-10">
+            <form id="filter-form"
+                  hx-get="{% url 'documents:search' %}"
+                  hx-trigger="change, submit"
+                  hx-target="#documents-container"
+                  hx-indicator="#loading-indicator"
+                  hx-push-url="true"
+                  onsubmit="event.preventDefault();">
+                
+                <!-- Primary Search Input (Prominent Nextly-style) -->
+                <div class="mb-6">
+                    <label for="search-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
+                        Ketik Kata Kunci Dokumen
+                    </label>
+                    <div class="relative flex items-center">
+                        <div class="absolute left-4 text-slate-400 pointer-events-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text"
+                               name="q"
+                               id="search-input"
+                               value="{{ search_query }}"
+                               placeholder="Cari judul, nomor dokumen, atau topik (contoh: Kinerja, Disiplin, 42 Tahun 2023, PPPK)..."
+                               class="w-full pl-12 pr-28 py-4 rounded-2xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 shadow-inner bg-slate-50/60 hover:bg-white transition"
+                               hx-get="{% url 'documents:search' %}"
+                               hx-trigger="keyup changed delay:300ms, search"
+                               hx-target="#documents-container"
+                               hx-indicator="#loading-indicator"
+                               hx-push-url="true">
+                        
+                        <button type="submit"
+                                class="absolute right-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+                            <span>Cari</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Controls Grid -->
+                <div class="pt-5 border-t border-slate-100">
+                    <div class="flex items-center justify-between gap-4 mb-3.5">
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                            <span>Filter Parameter Regulasi</span>
+                        </span>
+
+                        <a href="{% url 'documents:index' %}" class="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>Reset Filter</span>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <!-- Jenis Dokumen -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jenis Dokumen</label>
+                            <select name="jenis" id="filter-jenis" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                                <option value="">Semua Jenis Regulasi</option>
+                                {% for code, label in document_types %}
+                                    <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Tahun Terbit -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Tahun Terbit</label>
+                            <select name="tahun" id="filter-tahun" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                                <option value="">Semua Tahun</option>
+                                {% for yr in available_years %}
+                                    <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Kategori Kepegawaian -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Kategori Kepegawaian</label>
+                            <select name="kategori" id="filter-kategori" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                                <option value="">Semua Kategori</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if selected_kategori == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Status Dokumen -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Status Hukum</label>
+                            <select name="status" id="filter-status" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                                <option value="semua" {% if selected_status == 'semua' or not selected_status %}selected{% endif %}>Semua Status</option>
+                                <option value="berlaku" {% if selected_status == 'berlaku' %}selected{% endif %}>Hanya Berlaku</option>
+                                <option value="diubah" {% if selected_status == 'diubah' %}selected{% endif %}>Diubah</option>
+                                <option value="dicabut" {% if selected_status == 'dicabut' %}selected{% endif %}>Dicabut</option>
+                            </select>
+                        </div>
+
+                        <!-- Urutkan -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Urutan Hasil</label>
+                            <select name="sort" id="filter-sort" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                                <option value="terbaru" {% if selected_sort == 'terbaru' %}selected{% endif %}>Terbaru Diterbitkan</option>
+                                <option value="populer" {% if selected_sort == 'populer' %}selected{% endif %}>Paling Sering Dilihat</option>
+                                <option value="tahun_desc" {% if selected_sort == 'tahun_desc' %}selected{% endif %}>Tahun (Baru ke Lama)</option>
+                                <option value="tahun_asc" {% if selected_sort == 'tahun_asc' %}selected{% endif %}>Tahun (Lama ke Baru)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- HTMX Loading Indicator Bar -->
+        <div id="loading-indicator" class="htmx-indicator mb-6">
+            <div class="flex items-center justify-center gap-3 py-3.5 bg-indigo-50/90 rounded-2xl text-indigo-800 text-xs font-semibold border border-indigo-100">
+                <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Memperbarui katalog dokumen regulasi...</span>
+            </div>
+        </div>
+
+        <!-- Document Catalog Results (Targeted by HTMX) -->
+        {% include "documents/partials/document_list.html" %}
+
+    </div>
+</section>
 {% endblock %}

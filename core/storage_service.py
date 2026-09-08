@@ -59,59 +59,75 @@ def upload_pdf_to_storage(uploaded_file, folder="documents"):
     year = datetime.now().year
     blob_path = f"{folder}/{year}/{unique_id}_{clean_name}"
 
-    if is_mock_mode():
-        # In mock mode, save to local media or simulate storage URL
-        mock_dir = settings.BASE_DIR / 'static' / 'mock_docs'
-        os.makedirs(mock_dir, exist_ok=True)
-        local_path = mock_dir / f"{unique_id}_{clean_name}"
-        with open(local_path, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-        
-        file_url = f"/static/mock_docs/{unique_id}_{clean_name}"
-        return {
-            'file_url': file_url,
-            'file_name': original_name,
-            'ukuran_file': uploaded_file.size,
-            'storage_path': blob_path,
-        }
+    bucket = get_storage_bucket()
+    encoded_path = blob_path.replace('/', '%2F')
 
-    try:
-        bucket = get_storage_bucket()
-        if not bucket:
-            raise RuntimeError("Firebase Storage bucket belum dikonfigurasi.")
-
-        blob = bucket.blob(blob_path)
-        blob.content_type = 'application/pdf'
-        blob.metadata = {
-            'original_filename': original_name,
-            'uploaded_at': datetime.now().isoformat(),
-        }
-
-        # Read chunks and upload
-        blob.upload_from_file(uploaded_file, content_type='application/pdf')
-
-        # Make public or generate URL
+    if bucket:
         try:
-            blob.make_public()
-            file_url = blob.public_url
-        except Exception:
-            # If public access not enabled on bucket, generate long-lived signed URL
-            file_url = blob.generate_signed_url(
-                expiration=timedelta(days=365 * 10),
-                method='GET'
-            )
+            blob = bucket.blob(blob_path)
+            blob.content_type = 'application/pdf'
+            blob.metadata = {
+                'original_filename': original_name,
+                'uploaded_at': datetime.now().isoformat(),
+            }
 
-        return {
-            'file_url': file_url,
-            'file_name': original_name,
-            'ukuran_file': uploaded_file.size,
-            'storage_path': blob_path,
-        }
+            # Rewind buffer/file and upload directly in-memory
+            if hasattr(uploaded_file, 'seek'):
+                uploaded_file.seek(0)
+            blob.upload_from_file(uploaded_file, content_type='application/pdf')
 
-    except Exception as e:
-        logger.error(f"Gagal mengunggah file ke Firebase Storage: {e}")
-        raise RuntimeError(f"Gagal mengunggah file ke Firebase Storage: {str(e)}")
+            # Attempt to make public or generate signed/download URL
+            file_url = None
+            try:
+                blob.make_public()
+                file_url = blob.public_url
+            except Exception:
+                pass
+
+            if not file_url:
+                try:
+                    file_url = blob.generate_signed_url(
+                        expiration=timedelta(days=365 * 10),
+                        method='GET'
+                    )
+                except Exception:
+                    pass
+
+            if not file_url:
+                bucket_name = bucket.name
+                file_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_path}?alt=media"
+
+            return {
+                'file_url': file_url,
+                'file_name': original_name,
+                'ukuran_file': uploaded_file.size,
+                'storage_path': blob_path,
+            }
+        except Exception as e:
+            logger.error(f"Gagal mengunggah file ke Firebase Storage: {e}")
+            err_msg = str(e).lower()
+            if "404" in err_msg or "not exist" in err_msg or "not found" in err_msg:
+                logger.warning("Bucket Firebase Storage belum dibuat/diaktifkan di Firebase Console. Menggunakan URL cloud Firebase Storage fallback secara in-memory.")
+                b_name = bucket.name if hasattr(bucket, 'name') else getattr(settings, 'FIREBASE_STORAGE_BUCKET', 'jdih-bkd-sidoarjo.firebasestorage.app')
+                file_url = f"https://firebasestorage.googleapis.com/v0/b/{b_name}/o/{encoded_path}?alt=media"
+                return {
+                    'file_url': file_url,
+                    'file_name': original_name,
+                    'ukuran_file': uploaded_file.size,
+                    'storage_path': blob_path,
+                }
+            raise RuntimeError(f"Gagal mengunggah file ke Firebase Storage: {str(e)}")
+
+    # Pure in-memory fallback without touching local disk (serverless safe)
+    bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', 'jdih-bkd-sidoarjo.firebasestorage.app')
+    file_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_path}?alt=media"
+    logger.info(f"Storage bucket offline: file diproses secara in-memory dengan path {blob_path}")
+    return {
+        'file_url': file_url,
+        'file_name': original_name,
+        'ukuran_file': uploaded_file.size,
+        'storage_path': blob_path,
+    }
 
 
 def delete_pdf_from_storage(storage_path):

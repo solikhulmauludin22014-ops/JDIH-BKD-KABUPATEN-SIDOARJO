@@ -47,7 +47,13 @@ def initialize_firebase():
         service_account_json = getattr(settings, 'FIREBASE_SERVICE_ACCOUNT_JSON', None)
         if service_account_json:
             try:
-                cert_dict = json.loads(service_account_json)
+                raw_json = service_account_json.strip()
+                if (raw_json.startswith("'") and raw_json.endswith("'")) or (raw_json.startswith('"') and raw_json.endswith('"') and not raw_json.startswith('{"')):
+                    raw_json = raw_json[1:-1].strip()
+                cert_dict = json.loads(raw_json)
+                if isinstance(cert_dict, dict) and 'private_key' in cert_dict and isinstance(cert_dict['private_key'], str):
+                    if '\\n' in cert_dict['private_key']:
+                        cert_dict['private_key'] = cert_dict['private_key'].replace('\\n', '\n')
                 cred = credentials.Certificate(cert_dict)
                 logger.info("Loaded Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON.")
             except Exception as e:
@@ -121,9 +127,9 @@ def get_firestore_db():
 
 
 def get_storage_bucket():
-    """Get Storage bucket or None if mock mode."""
-    _, bucket, is_mock = initialize_firebase()
-    return bucket if not is_mock else None
+    """Get Storage bucket or None if bucket could not be initialized."""
+    _, bucket, _ = initialize_firebase()
+    return bucket
 
 
 def is_mock_mode():
