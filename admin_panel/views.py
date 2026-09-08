@@ -50,7 +50,7 @@ def login_view(request):
 
         # If ID token provided from Firebase Web SDK
         if id_token:
-            decoded = verify_firebase_id_token(id_token)
+            decoded, err_msg = verify_firebase_id_token(id_token)
             if decoded:
                 request.session['admin_user'] = {
                     'uid': decoded.get('uid'),
@@ -60,7 +60,7 @@ def login_view(request):
                 messages.success(request, f"Selamat datang kembali, {request.session['admin_user']['name']}!")
                 return redirect(next_url)
             else:
-                messages.error(request, "Verifikasi token Firebase gagal. Silakan coba lagi.")
+                messages.error(request, f"Verifikasi token Firebase gagal: {err_msg}")
 
         # Fallback / Demo login verification
         elif email and password:
@@ -97,7 +97,10 @@ def session_login_api(request):
         if not id_token:
             return JsonResponse({'status': 'error', 'message': 'Token tidak disediakan.'}, status=400)
 
-        decoded = verify_firebase_id_token(id_token)
+        if isinstance(id_token, str):
+            id_token = id_token.strip()
+
+        decoded, error_msg = verify_firebase_id_token(id_token)
         if decoded:
             user_email = decoded.get('email') or email or 'admin@bkd.sidoarjokab.go.id'
             raw_name = decoded.get('name') or user_email.split('@')[0]
@@ -106,11 +109,19 @@ def session_login_api(request):
                 'email': user_email,
                 'name': raw_name.title() if raw_name else 'Admin BKD Sidoarjo',
             }
+            print(f"[SESSION LOGIN API] Sesi admin berhasil dibuat untuk {user_email}")
             return JsonResponse({'status': 'ok', 'redirect': reverse('admin_panel:dashboard')})
         else:
-            return JsonResponse({'status': 'error', 'message': 'Token Firebase tidak valid atau telah kedaluwarsa.'}, status=401)
+            print(f"[SESSION LOGIN API REJECTED] {error_msg}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f"Verifikasi Firebase gagal: {error_msg}"
+            }, status=401)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        import traceback
+        traceback.print_exc()
+        print(f"[SESSION LOGIN API EXCEPTION] {e}")
+        return JsonResponse({'status': 'error', 'message': f"Server error: {str(e)}"}, status=500)
 
 
 def logout_view(request):

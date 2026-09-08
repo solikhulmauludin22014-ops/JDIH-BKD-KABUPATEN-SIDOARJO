@@ -55,8 +55,11 @@ def initialize_firebase():
                     if '\\n' in cert_dict['private_key']:
                         cert_dict['private_key'] = cert_dict['private_key'].replace('\\n', '\n')
                 cred = credentials.Certificate(cert_dict)
-                logger.info("Loaded Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON.")
+                proj_id = cert_dict.get('project_id', 'unknown')
+                print(f"[FIREBASE CONFIG] Loaded credentials from FIREBASE_SERVICE_ACCOUNT_JSON (project_id: {proj_id})")
+                logger.info(f"Loaded Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON (project_id: {proj_id}).")
             except Exception as e:
+                print(f"[FIREBASE CONFIG ERROR] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
                 logger.warning(f"Error parsing FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
 
         # 2. Try file path from environment variable or default path
@@ -73,8 +76,10 @@ def initialize_firebase():
             if valid_path:
                 try:
                     cred = credentials.Certificate(valid_path)
+                    print(f"[FIREBASE CONFIG] Loaded Firebase credentials from file: {valid_path}")
                     logger.info(f"Loaded Firebase credentials from file: {valid_path}")
                 except Exception as e:
+                    print(f"[FIREBASE CONFIG ERROR] Failed to load credentials from {valid_path}: {e}")
                     logger.warning(f"Error loading credentials from {valid_path}: {e}")
 
         # Initialize if credentials found
@@ -85,6 +90,7 @@ def initialize_firebase():
                 options['storageBucket'] = bucket_name
 
             _firebase_app = firebase_admin.initialize_app(cred, options)
+            print(f"[FIREBASE CONFIG] Firebase Admin App initialized successfully (name: {_firebase_app.name})")
             try:
                 _firestore_db = firestore.client()
                 # Test connectivity to Firestore
@@ -110,8 +116,11 @@ def initialize_firebase():
             else:
                 _is_mock = True
                 return None, _storage_bucket, _is_mock
+        else:
+            print("[FIREBASE CONFIG WARNING] No Firebase credentials found in environment or local file.")
 
     except Exception as e:
+        print(f"[FIREBASE CONFIG ERROR] Failed to initialize Firebase Admin SDK: {e}")
         logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
 
     # Fallback to Mock mode for preview and development
@@ -141,23 +150,53 @@ def is_mock_mode():
 def verify_firebase_id_token(id_token):
     """
     Verify Firebase ID token using firebase_admin.auth.
-    Returns decoded token dict with 'uid', 'email', etc. or None on failure.
+    Returns (decoded_token_dict, error_message_str).
+    - On success: (decoded_token, None)
+    - On failure: (None, error_str)
     """
-    if is_mock_mode():
-        # In mock mode, allow test token verification
-        if id_token and id_token.startswith("mock-token-"):
-            email = id_token.replace("mock-token-", "")
-            return {
-                "uid": f"mock_uid_{email}",
-                "email": email,
-                "name": "Admin BKD Sidoarjo",
-            }
-        return None
+    if not id_token or not isinstance(id_token, str):
+        return None, "ID token tidak disediakan atau format bukan string."
+
+    id_token = id_token.strip()
+
+    # Mock token for automated tests / local sandbox
+    if id_token.startswith("mock-token-"):
+        email = id_token.replace("mock-token-", "")
+        print(f"[FIREBASE AUTH MOCK] Verifying test token for: {email}")
+        return {
+            "uid": f"mock_uid_{email}",
+            "email": email,
+            "name": "Admin BKD Sidoarjo",
+        }, None
+
+    initialize_firebase()
+
+    import firebase_admin
+    from firebase_admin import auth
+
+    # Check if Firebase App is initialized
+    app = _firebase_app
+    if app is None and firebase_admin._apps:
+        app = firebase_admin.get_app()
+
+    if app is None:
+        err_msg = (
+            "Firebase Admin SDK belum terinisialisasi di server. "
+            "Pastikan environment variable FIREBASE_SERVICE_ACCOUNT_JSON telah diisi di dashboard Vercel."
+        )
+        print(f"[FIREBASE AUTH ERROR] {err_msg}")
+        return None, err_msg
 
     try:
-        from firebase_admin import auth
-        decoded_token = auth.verify_id_token(id_token)
-        return decoded_token
+        # Verify token with firebase-admin
+        decoded_token = auth.verify_id_token(id_token, app=app, check_revoked=False)
+        user_uid = decoded_token.get('uid')
+        user_email = decoded_token.get('email', 'unknown')
+        print(f"[FIREBASE AUTH SUCCESS] Token verified successfully for UID={user_uid}, Email={user_email}")
+        return decoded_token, None
     except Exception as e:
-        logger.error(f"Error verifying Firebase ID token: {e}")
-        return None
+        err_type = type(e).__name__
+        err_msg = str(e)
+        print(f"[FIREBASE AUTH VERIFY ERROR] {err_type}: {err_msg}")
+        logger.exception(f"Error verifying Firebase ID token: {e}")
+        return None, f"[{err_type}] {err_msg}"
