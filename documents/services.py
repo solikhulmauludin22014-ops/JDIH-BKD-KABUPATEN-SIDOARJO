@@ -494,6 +494,80 @@ def restore_document(doc_id):
     return False
 
 
+def bulk_delete_documents(doc_ids, soft=True):
+    """
+    Bulk delete multiple documents.
+    Uses WriteBatch for Firestore (atomic, up to 500 ops per batch).
+    """
+    if not doc_ids:
+        return 0
+
+    db = get_firestore_db()
+    if db and not is_mock_mode():
+        try:
+            batch = db.batch()
+            now = datetime.now()
+            for doc_id in doc_ids:
+                doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+                if soft:
+                    batch.update(doc_ref, {'status': 'dihapus', 'updated_at': now})
+                else:
+                    batch.delete(doc_ref)
+            batch.commit()
+            return len(doc_ids)
+        except Exception as e:
+            logger.error(f"Error in bulk delete (soft={soft}) from Firestore: {e}")
+            return 0
+
+    count = 0
+    now = datetime.now()
+    for doc_id in doc_ids:
+        for idx, d in enumerate(_MOCK_DOCUMENTS):
+            if d['id'] == doc_id:
+                if soft:
+                    _MOCK_DOCUMENTS[idx]['status'] = 'dihapus'
+                    _MOCK_DOCUMENTS[idx]['updated_at'] = now
+                else:
+                    _MOCK_DOCUMENTS.pop(idx)
+                count += 1
+                break
+    return count
+
+
+def bulk_restore_documents(doc_ids):
+    """
+    Bulk restore multiple documents.
+    Uses WriteBatch for Firestore.
+    """
+    if not doc_ids:
+        return 0
+
+    db = get_firestore_db()
+    if db and not is_mock_mode():
+        try:
+            batch = db.batch()
+            now = datetime.now()
+            for doc_id in doc_ids:
+                doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+                batch.update(doc_ref, {'status': 'berlaku', 'updated_at': now})
+            batch.commit()
+            return len(doc_ids)
+        except Exception as e:
+            logger.error(f"Error in bulk restore from Firestore: {e}")
+            return 0
+
+    count = 0
+    now = datetime.now()
+    for doc_id in doc_ids:
+        for idx, d in enumerate(_MOCK_DOCUMENTS):
+            if d['id'] == doc_id:
+                _MOCK_DOCUMENTS[idx]['status'] = 'berlaku'
+                _MOCK_DOCUMENTS[idx]['updated_at'] = now
+                count += 1
+                break
+    return count
+
+
 def increment_view_count(doc_id):
     """Increment document view count."""
     db = get_firestore_db()

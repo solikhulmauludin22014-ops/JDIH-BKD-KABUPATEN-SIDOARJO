@@ -23,6 +23,8 @@ from documents.services import (
     update_document,
     delete_document,
     restore_document,
+    bulk_delete_documents,
+    bulk_restore_documents,
     get_statistics,
     get_available_years,
     DOCUMENT_TYPES,
@@ -359,3 +361,39 @@ def document_restore_view(request, doc_id):
         messages.error(request, "Gagal memulihkan dokumen.")
 
     return redirect(f"{reverse('admin_panel:dashboard')}?tab=aktif")
+
+
+@admin_login_required
+@require_POST
+def document_bulk_action_view(request):
+    """
+    Handle bulk actions (soft_delete, hard_delete, restore) from dashboard checkboxes.
+    """
+    action = request.POST.get('action')
+    doc_ids = request.POST.getlist('doc_ids')
+    tab = request.POST.get('tab', 'aktif')
+
+    if not doc_ids:
+        messages.warning(request, "Tidak ada dokumen yang dipilih.")
+        return redirect(f"{reverse('admin_panel:dashboard')}?tab={tab}")
+
+    if action == 'restore':
+        count = bulk_restore_documents(doc_ids)
+        if count > 0:
+            messages.success(request, f"{count} dokumen berhasil dipulihkan ke status Berlaku.")
+        else:
+            messages.error(request, "Gagal memulihkan dokumen massal atau semua dokumen terpilih sudah tidak ada.")
+    elif action in ['soft_delete', 'hard_delete']:
+        soft = (action == 'soft_delete')
+        count = bulk_delete_documents(doc_ids, soft=soft)
+        if count > 0:
+            if soft:
+                messages.success(request, f"{count} dokumen berhasil dipindahkan ke kotak sampah.")
+            else:
+                messages.success(request, f"{count} dokumen telah dihapus secara permanen.")
+        else:
+            messages.error(request, "Gagal menghapus dokumen massal atau semua dokumen terpilih sudah tidak ada.")
+    else:
+        messages.error(request, "Aksi tidak valid.")
+
+    return redirect(f"{reverse('admin_panel:dashboard')}?tab={tab}")

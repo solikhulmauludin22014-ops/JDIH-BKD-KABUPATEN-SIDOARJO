@@ -14,4 +14,5 @@ urlpatterns = [
     path('documents/<str:doc_id>/edit/', views.document_edit_view, name='document_edit'),
     path('documents/<str:doc_id>/delete/', views.document_delete_view, name='document_delete'),
     path('documents/<str:doc_id>/restore/', views.document_restore_view, name='document_restore'),
+    path('documents/bulk-action/', views.document_bulk_action_view, name='document_bulk_action'),
 ]
