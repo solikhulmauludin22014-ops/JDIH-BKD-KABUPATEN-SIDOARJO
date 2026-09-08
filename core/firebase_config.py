@@ -84,11 +84,11 @@ def initialize_firebase():
                 # Test connectivity to Firestore
                 _ = list(_firestore_db.collection('documents').limit(1).stream())
             except Exception as fe:
-                logger.warning(
-                    f"Firebase credentials valid, but Firestore API is not ready ({fe}). "
-                    "Pastikan 'Firestore Database' sudah diaktifkan (Create Database) di Firebase Console. "
-                    "Mengaktifkan mode data demo sementara."
-                )
+                msg_str = str(fe)
+                if "SERVICE_DISABLED" in msg_str or "403" in msg_str:
+                    logger.info("Info Firebase: Cloud Firestore belum diaktifkan di Firebase Console. Mengaktifkan mode data lokal siap-pakai.")
+                else:
+                    logger.info(f"Info Firebase: {msg_str[:120]}. Mengaktifkan mode data lokal siap-pakai.")
                 _firestore_db = None
 
             if bucket_name:
