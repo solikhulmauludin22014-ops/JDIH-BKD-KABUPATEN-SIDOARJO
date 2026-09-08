@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}JDIH BKD Kabupaten Sidoarjo - Jaringan Dokumentasi & Informasi Hukum Kepegawaian{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <!-- Header Ringkas & Branding -->
+    <div class="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-bold mb-2">
+                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>Basis Data Regulasi Kepegawaian Resmi</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-950 tracking-tight">
+                Pencarian Produk Hukum JDIH BKD Sidoarjo
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Cari, telaah isi keputusan/peraturan, dan unduh salinan resmi naskah hukum kepegawaian Kabupaten Sidoarjo.
+            </p>
+        </div>
+
+        <!-- Quick Metrics Badges (Ringkas) -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+                Total: <strong class="text-blue-700">{{ stats.total_documents }}</strong>
+            </span>
+            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+                Perbup: <strong class="text-blue-700">{{ stats.perbup_count }}</strong>
+            </span>
+            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+                SK: <strong class="text-blue-700">{{ stats.sk_count }}</strong>
+            </span>
+            <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+                SE: <strong class="text-blue-700">{{ stats.se_count }}</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Unified Search & Filter Card (Elemen Utama Halaman) -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 mb-8">
+        <form id="filter-form"
+              hx-get="{% url 'documents:search' %}"
+              hx-trigger="change, submit"
+              hx-target="#documents-container"
+              hx-indicator="#loading-indicator"
+              hx-push-url="true"
+              onsubmit="event.preventDefault();">
+            
+            <!-- Primary Search Input -->
+            <div class="mb-5">
+                <label for="search-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Cari Dokumen Hukum
+                </label>
+                <div class="relative flex items-center">
+                    <div class="absolute left-4 text-slate-400 pointer-events-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text"
+                           name="q"
+                           id="search-input"
+                           value="{{ search_query }}"
+                           placeholder="Ketik judul regulasi, nomor naskah, atau kata kunci (contoh: Kinerja, 42 Tahun 2023, PPPK, Disiplin)..."
+                           class="w-full pl-12 pr-28 py-3.5 rounded-2xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-inner bg-slate-50/50 hover:bg-white transition"
+                           hx-get="{% url 'documents:search' %}"
+                           hx-trigger="keyup changed delay:300ms, search"
+                           hx-target="#documents-container"
+                           hx-indicator="#loading-indicator"
+                           hx-push-url="true">
+                    
+                    <button type="submit"
+                            class="absolute right-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5">
+                        <span>Cari</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Controls Row -->
+            <div class="pt-4 border-t border-slate-100">
+                <div class="flex items-center justify-between gap-4 mb-3">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        <span>Filter Parameter</span>
+                    </span>
+
+                    <a href="{% url 'documents:index' %}" class="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Reset Filter</span>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <!-- Jenis Dokumen -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jenis Dokumen</label>
+                        <select name="jenis" id="filter-jenis" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                            <option value="">Semua Jenis Regulasi</option>
+                            {% for code, label in document_types %}
+                                <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Tahun Terbit -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Tahun Terbit</label>
+                        <select name="tahun" id="filter-tahun" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                            <option value="">Semua Tahun</option>
+                            {% for yr in available_years %}
+                                <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Kategori Kepegawaian -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Kategori Kepegawaian</label>
+                        <select name="kategori" id="filter-kategori" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                            <option value="">Semua Kategori</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if selected_kategori == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Status Dokumen -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Status Hukum</label>
+                        <select name="status" id="filter-status" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                            <option value="semua" {% if selected_status == 'semua' or not selected_status %}selected{% endif %}>Semua Status</option>
+                            <option value="berlaku" {% if selected_status == 'berlaku' %}selected{% endif %}>Hanya Berlaku</option>
+                            <option value="diubah" {% if selected_status == 'diubah' %}selected{% endif %}>Diubah</option>
+                            <option value="dicabut" {% if selected_status == 'dicabut' %}selected{% endif %}>Dicabut</option>
+                        </select>
+                    </div>
+
+                    <!-- Urutkan -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Urutan Hasil</label>
+                        <select name="sort" id="filter-sort" class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-blue-600 focus:ring-blue-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
+                            <option value="terbaru" {% if selected_sort == 'terbaru' %}selected{% endif %}>Terbaru Diterbitkan</option>
+                            <option value="populer" {% if selected_sort == 'populer' %}selected{% endif %}>Paling Sering Dilihat</option>
+                            <option value="tahun_desc" {% if selected_sort == 'tahun_desc' %}selected{% endif %}>Tahun (Baru ke Lama)</option>
+                            <option value="tahun_asc" {% if selected_sort == 'tahun_asc' %}selected{% endif %}>Tahun (Lama ke Baru)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- HTMX Loading Indicator Bar -->
+    <div id="loading-indicator" class="htmx-indicator mb-6">
+        <div class="flex items-center justify-center gap-3 py-3.5 bg-blue-50/80 rounded-2xl text-blue-800 text-xs font-semibold border border-blue-100">
+            <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Memperbarui daftar dokumen regulasi...</span>
+        </div>
+    </div>
+
+    <!-- Document Catalog Results (Targeted by HTMX) -->
+    {% include "documents/partials/document_list.html" %}
+</div>
+{% endblock %}

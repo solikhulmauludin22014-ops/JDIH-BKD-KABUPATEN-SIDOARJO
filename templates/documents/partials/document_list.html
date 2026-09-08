@@ -1,0 +1,112 @@
+<div id="documents-container">
+    <!-- Header Result Count & Quick Info -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2 text-sm text-slate-600">
+            <span class="font-bold text-slate-900">{{ pagination.total_items }}</span>
+            <span>Dokumen Regulasi Ditemukan</span>
+            {% if search_query %}
+                <span class="text-slate-400">•</span>
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md font-medium text-xs">Kata kunci: "{{ search_query }}"</span>
+            {% endif %}
+            {% if selected_jenis %}
+                <span class="text-slate-400">•</span>
+                <span class="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md font-medium text-xs">{{ selected_jenis|upper }}</span>
+            {% endif %}
+            {% if selected_tahun %}
+                <span class="text-slate-400">•</span>
+                <span class="text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-medium text-xs">Tahun {{ selected_tahun }}</span>
+            {% endif %}
+        </div>
+
+        <div class="text-xs text-slate-500 font-medium">
+            Halaman {{ pagination.current_page }} dari {{ pagination.total_pages }}
+        </div>
+    </div>
+
+    <!-- Document Grid -->
+    {% if documents %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for doc in documents %}
+                {% include "documents/partials/document_card.html" with doc=doc %}
+            {% endfor %}
+        </div>
+
+        <!-- HTMX Dynamic Pagination Controls -->
+        {% if pagination.total_pages > 1 %}
+        <div class="mt-12 flex items-center justify-center gap-2">
+            <!-- Prev Button -->
+            {% if pagination.has_previous %}
+                <button hx-get="{% url 'documents:search' %}?q={{ search_query }}&jenis={{ selected_jenis }}&tahun={{ selected_tahun }}&kategori={{ selected_kategori|urlencode }}&status={{ selected_status }}&sort={{ selected_sort }}&page={{ pagination.previous_page_number }}"
+                        hx-target="#documents-container"
+                        hx-indicator="#loading-indicator"
+                        hx-push-url="true"
+                        class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:border-slate-400 shadow-sm transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Sebelumnya</span>
+                </button>
+            {% else %}
+                <span class="px-4 py-2 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 text-sm font-semibold cursor-not-allowed flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Sebelumnya</span>
+                </span>
+            {% endif %}
+
+            <!-- Page Number Pills -->
+            <div class="hidden sm:flex items-center gap-1">
+                {% for p in pagination.page_range %}
+                    {% if p == pagination.current_page %}
+                        <span class="w-10 h-10 rounded-xl bg-blue-600 text-white font-bold text-sm flex items-center justify-center shadow-sm shadow-blue-600/30">
+                            {{ p }}
+                        </span>
+                    {% else %}
+                        <button hx-get="{% url 'documents:search' %}?q={{ search_query }}&jenis={{ selected_jenis }}&tahun={{ selected_tahun }}&kategori={{ selected_kategori|urlencode }}&status={{ selected_status }}&sort={{ selected_sort }}&page={{ p }}"
+                                hx-target="#documents-container"
+                                hx-indicator="#loading-indicator"
+                                hx-push-url="true"
+                                class="w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-sm font-medium transition flex items-center justify-center">
+                            {{ p }}
+                        </button>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Next Button -->
+            {% if pagination.has_next %}
+                <button hx-get="{% url 'documents:search' %}?q={{ search_query }}&jenis={{ selected_jenis }}&tahun={{ selected_tahun }}&kategori={{ selected_kategori|urlencode }}&status={{ selected_status }}&sort={{ selected_sort }}&page={{ pagination.next_page_number }}"
+                        hx-target="#documents-container"
+                        hx-indicator="#loading-indicator"
+                        hx-push-url="true"
+                        class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:border-slate-400 shadow-sm transition flex items-center gap-1.5">
+                    <span>Berikutnya</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            {% else %}
+                <span class="px-4 py-2 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 text-sm font-semibold cursor-not-allowed flex items-center gap-1.5">
+                    <span>Berikutnya</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center max-w-lg mx-auto my-8">
+            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Tidak Ada Dokumen yang Ditemukan</h3>
+            <p class="text-sm text-slate-500 mb-6 font-body">
+                Maaf, tidak ada dokumen hukum yang cocok dengan kriteria pencarian atau filter yang Anda pilih. Silakan gunakan kata kunci lain atau reset filter.
+            </p>
+            <button hx-get="{% url 'documents:search' %}"
+                    hx-target="#documents-container"
+                    hx-indicator="#loading-indicator"
+                    onclick="document.getElementById('filter-form').reset();"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Reset Semua Filter</span>
+            </button>
+        </div>
+    {% endif %}
+</div>

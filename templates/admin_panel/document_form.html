@@ -1,0 +1,194 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ title }} - Panel Admin JDIH BKD Sidoarjo{% endblock %}
+{% block page_heading %}{{ title }}{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Back button -->
+    <div class="mb-6">
+        <a href="{% url 'admin_panel:dashboard' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Kembali ke Daftar Dokumen</span>
+        </a>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10">
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-slate-100">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Lengkapi informasi metadata dan naskah resmi dokumen hukum kepegawaian.</p>
+            </div>
+            {% if is_edit %}
+                <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200/60">
+                    ID: {{ document.id }}
+                </span>
+            {% endif %}
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="doc-form">
+            {% csrf_token %}
+
+            <!-- Error Summary -->
+            {% if form.errors %}
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                <div class="font-bold mb-1">Terdapat kesalahan pengisian formulir:</div>
+                <ul class="list-disc pl-5 space-y-1">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Column (8 cols): Primary Details -->
+                <div class="lg:col-span-8 space-y-6">
+                    <!-- Judul -->
+                    <div>
+                        <label for="{{ form.judul.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Judul Dokumen Regulasi <span class="text-rose-500">*</span>
+                        </label>
+                        {{ form.judul }}
+                        <p class="text-[11px] text-slate-400 mt-1">Gunakan judul resmi dan lengkap sesuai lembaran naskah keputusan/peraturan.</p>
+                    </div>
+
+                    <!-- Nomor Dokumen -->
+                    <div>
+                        <label for="{{ form.nomor_dokumen.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Nomor Dokumen / Nomenklatur <span class="text-rose-500">*</span>
+                        </label>
+                        {{ form.nomor_dokumen }}
+                    </div>
+
+                    <!-- Deskripsi / Abstraksi -->
+                    <div>
+                        <label for="{{ form.deskripsi.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Ringkasan / Abstraksi Pokok Peraturan <span class="text-rose-500">*</span>
+                        </label>
+                        {{ form.deskripsi }}
+                        <p class="text-[11px] text-slate-400 mt-1">Uraikan pokok isi ketentuan, tujuan, dan subjek yang diatur agar memudahkan pencarian publik.</p>
+                    </div>
+
+                    <!-- Tags -->
+                    <div>
+                        <label for="{{ form.tags.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Kata Kunci (Tags)
+                        </label>
+                        {{ form.tags }}
+                        <p class="text-[11px] text-slate-400 mt-1">Pisahkan antar kata kunci dengan tanda koma (contoh: <code>kinerja, skp, pns, evaluasi, bkd</code>).</p>
+                    </div>
+
+                    <!-- File PDF Upload Box -->
+                    <div class="p-6 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-400 transition" x-data="{ fileName: '', fileSize: '' }">
+                        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+                            <span>Berkas Dokumen PDF {% if not is_edit %}<span class="text-rose-500">*</span>{% endif %}</span>
+                            <span class="text-[11px] font-normal text-slate-500 lowercase">Maksimal 10 MB (Format .pdf)</span>
+                        </label>
+
+                        {% if is_edit and document.file_url %}
+                            <div class="mb-4 p-3 bg-blue-50/80 rounded-xl border border-blue-200/80 flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-2 text-blue-900 font-semibold truncate">
+                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="truncate">{{ document.file_name|default:"Dokumen Terlampir" }}</span>
+                                </div>
+                                <a href="{{ document.file_url }}" target="_blank" class="text-blue-700 hover:underline font-bold text-[11px] flex-shrink-0">
+                                    Pratinjau Berkas
+                                </a>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mb-2 font-medium">Unggah file baru di bawah jika ingin mengganti berkas PDF saat ini:</p>
+                        {% endif %}
+
+                        <div class="mt-1">
+                            <input type="file"
+                                   name="file_dokumen"
+                                   id="id_file_dokumen"
+                                   accept="application/pdf,.pdf"
+                                   @change="if ($event.target.files.length > 0) {
+                                       const f = $event.target.files[0];
+                                       if (f.size > 10 * 1024 * 1024) {
+                                           alert('Ukuran file melebihi 10MB! Harap pilih file yang lebih kecil.');
+                                           $event.target.value = '';
+                                           fileName = '';
+                                       } else {
+                                           fileName = f.name;
+                                           fileSize = (f.size / (1024 * 1024)).toFixed(2) + ' MB';
+                                       }
+                                   }"
+                                   class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition cursor-pointer">
+                        </div>
+
+                        <div x-show="fileName" class="mt-3 text-xs text-emerald-700 font-semibold flex items-center gap-1.5" style="display:none;">
+                            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>File dipilih: <strong x-text="fileName"></strong> (<span x-text="fileSize"></span>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (4 cols): Meta Attributes -->
+                <div class="lg:col-span-4 space-y-6">
+                    <!-- Jenis Dokumen -->
+                    <div class="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-5">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-200">
+                            Klasifikasi Regulasi
+                        </h3>
+
+                        <div>
+                            <label for="{{ form.jenis_dokumen.id_for_label }}" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Jenis Regulasi <span class="text-rose-500">*</span>
+                            </label>
+                            {{ form.jenis_dokumen }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.kategori.id_for_label }}" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Kategori / Topik <span class="text-rose-500">*</span>
+                            </label>
+                            {{ form.kategori }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.status.id_for_label }}" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Status Keberlakuan <span class="text-rose-500">*</span>
+                            </label>
+                            {{ form.status }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.tahun.id_for_label }}" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Tahun Terbit <span class="text-rose-500">*</span>
+                            </label>
+                            {{ form.tahun }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.tanggal_terbit.id_for_label }}" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Tanggal Penetapan <span class="text-rose-500">*</span>
+                            </label>
+                            {{ form.tanggal_terbit }}
+                        </div>
+                    </div>
+
+                    <!-- Submit & Actions Box -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Dokumen</span>
+                        </button>
+
+                        <a href="{% url 'admin_panel:dashboard' %}" class="block w-full py-2.5 px-4 rounded-xl border border-slate-200 text-center text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                            Batal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

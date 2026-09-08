@@ -1,0 +1,340 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Dashboard Dokumen - Panel Admin JDIH BKD Sidoarjo{% endblock %}
+{% block page_heading %}Katalog & Manajemen Regulasi Hukum BKD{% endblock %}
+
+{% block admin_content %}
+<div x-data="{ deleteModal: false, deleteDocId: '', deleteDocTitle: '', isPermanent: false }">
+    <!-- Top Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <!-- Card 1 -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Regulasi</span>
+                    <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ stats.total_documents }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+            </div>
+            <div class="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
+                <span class="text-emerald-600 font-bold">{{ stats.berlaku_count }} Dokumen</span>
+                <span>status berlaku aktif</span>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perbup & SK</span>
+                    <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ stats.perbup_count|add:stats.sk_count }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+            </div>
+            <div class="mt-3 text-[11px] text-slate-500 flex items-center gap-2">
+                <span>{{ stats.perbup_count }} Perbup</span>
+                <span>•</span>
+                <span>{{ stats.sk_count }} SK</span>
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Dilihat</span>
+                    <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ stats.total_views }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </div>
+            </div>
+            <div class="mt-3 text-[11px] text-slate-500">
+                Akses publik dan aparatur sipil
+            </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Diunduh</span>
+                    <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ stats.total_downloads }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </div>
+            </div>
+            <div class="mt-3 text-[11px] text-slate-500">
+                Unduhan naskah PDF asli
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card Container -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <!-- Tabs & Filter Bar -->
+        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 border-b md:border-b-0 border-slate-200 pb-2 md:pb-0">
+                <a href="{% url 'admin_panel:dashboard' %}?tab=aktif"
+                   class="px-4 py-2 rounded-xl text-xs font-bold transition {% if current_tab == 'aktif' or not current_tab %}bg-blue-600 text-white shadow-sm shadow-blue-600/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                    Dokumen Aktif
+                </a>
+                <a href="{% url 'admin_panel:dashboard' %}?tab=semua"
+                   class="px-4 py-2 rounded-xl text-xs font-bold transition {% if current_tab == 'semua' %}bg-blue-600 text-white shadow-sm shadow-blue-600/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                    Semua Status
+                </a>
+                <a href="{% url 'admin_panel:dashboard' %}?tab=sampah"
+                   class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if current_tab == 'sampah' %}bg-rose-600 text-white shadow-sm shadow-rose-600/20{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Kotak Sampah</span>
+                </a>
+            </div>
+
+            <!-- Search and Filter Form -->
+            <form method="GET" action="{% url 'admin_panel:dashboard' %}" class="flex flex-wrap items-center gap-2">
+                <input type="hidden" name="tab" value="{{ current_tab }}">
+
+                <div class="relative">
+                    <input type="text"
+                           name="q"
+                           value="{{ search_query }}"
+                           placeholder="Cari judul / nomor..."
+                           class="rounded-xl border-slate-200 text-xs py-2 pl-8 pr-3 focus:border-blue-600 focus:ring-blue-600 w-44 sm:w-56">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+
+                <select name="jenis" onchange="this.form.submit()" class="rounded-xl border-slate-200 text-xs py-2 px-2.5 focus:border-blue-600 focus:ring-blue-600">
+                    <option value="">Semua Jenis</option>
+                    {% for code, label in document_types %}
+                    <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ code|upper }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="tahun" onchange="this.form.submit()" class="rounded-xl border-slate-200 text-xs py-2 px-2.5 focus:border-blue-600 focus:ring-blue-600">
+                    <option value="">Tahun</option>
+                    {% for yr in available_years %}
+                    <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition">
+                    Filter
+                </button>
+
+                {% if search_query or selected_jenis or selected_tahun %}
+                <a href="{% url 'admin_panel:dashboard' %}?tab={{ current_tab }}" class="p-2 text-slate-500 hover:text-slate-900 text-xs font-semibold">
+                    Reset
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                        <th class="py-3.5 px-6">Nomor & Judul Regulasi</th>
+                        <th class="py-3.5 px-4">Jenis</th>
+                        <th class="py-3.5 px-4">Tahun</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4">Statistik</th>
+                        <th class="py-3.5 px-6 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                    {% if documents %}
+                        {% for doc in documents %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <!-- Nomor & Judul -->
+                            <td class="py-4 px-6 max-w-md">
+                                <div class="font-bold text-blue-700 flex items-center gap-1.5 mb-1">
+                                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>{{ doc.nomor_dokumen }}</span>
+                                </div>
+                                <div class="font-semibold text-slate-900 leading-snug line-clamp-2">
+                                    {{ doc.judul }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 mt-1">
+                                    Kategori: {{ doc.kategori }}
+                                </div>
+                            </td>
+
+                            <!-- Jenis -->
+                            <td class="py-4 px-4 whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase
+                                    {% if doc.jenis_dokumen == 'perbup' %}bg-blue-50 text-blue-700
+                                    {% elif doc.jenis_dokumen == 'sk' %}bg-indigo-50 text-indigo-700
+                                    {% elif doc.jenis_dokumen == 'perda' %}bg-purple-50 text-purple-700
+                                    {% elif doc.jenis_dokumen == 'se' %}bg-amber-50 text-amber-800
+                                    {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                    {{ doc.jenis_dokumen }}
+                                </span>
+                            </td>
+
+                            <!-- Tahun -->
+                            <td class="py-4 px-4 whitespace-nowrap font-semibold text-slate-800">
+                                {{ doc.tahun }}
+                            </td>
+
+                            <!-- Status -->
+                            <td class="py-4 px-4 whitespace-nowrap">
+                                {% if doc.status == 'berlaku' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        Berlaku
+                                    </span>
+                                {% elif doc.status == 'diubah' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        Diubah
+                                    </span>
+                                {% elif doc.status == 'dicabut' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        Dicabut
+                                    </span>
+                                {% elif doc.status == 'dihapus' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-300">
+                                        Sampah
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Statistik -->
+                            <td class="py-4 px-4 whitespace-nowrap text-[11px] text-slate-500">
+                                <div class="flex items-center gap-2">
+                                    <span title="Dilihat">{{ doc.view_count }} view</span>
+                                    <span>•</span>
+                                    <span title="Diunduh">{{ doc.download_count }} dl</span>
+                                </div>
+                            </td>
+
+                            <!-- Aksi -->
+                            <td class="py-4 px-6 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <!-- Detail Public Preview -->
+                                    <a href="{% url 'documents:detail' doc.id %}" target="_blank" title="Lihat di Beranda Publik" class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+
+                                    {% if doc.status == 'dihapus' %}
+                                        <!-- Restore Button -->
+                                        <form method="POST" action="{% url 'admin_panel:document_restore' doc.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" title="Pulihkan Dokumen" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                <span>Pulihkan</span>
+                                            </button>
+                                        </form>
+
+                                        <!-- Permanent Delete -->
+                                        <button type="button"
+                                                @click="deleteModal = true; deleteDocId = '{{ doc.id }}'; deleteDocTitle = '{{ doc.nomor_dokumen|escapejs }}'; isPermanent = true;"
+                                                title="Hapus Permanen"
+                                                class="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    {% else %}
+                                        <!-- Edit Button -->
+                                        <a href="{% url 'admin_panel:document_edit' doc.id %}" title="Edit Dokumen" class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        </a>
+
+                                        <!-- Soft Delete Button -->
+                                        <button type="button"
+                                                @click="deleteModal = true; deleteDocId = '{{ doc.id }}'; deleteDocTitle = '{{ doc.nomor_dokumen|escapejs }}'; isPermanent = false;"
+                                                title="Hapus ke Kotak Sampah"
+                                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                <svg class="w-12 h-12 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <p class="text-sm font-semibold text-slate-600">Tidak ada data dokumen hukum.</p>
+                                <a href="{% url 'admin_panel:document_create' %}" class="inline-block mt-3 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition">
+                                    Tambah Dokumen Baru Sekarang
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.total_pages > 1 %}
+        <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div>
+                Menampilkan halaman {{ pagination.current_page }} dari {{ pagination.total_pages }} (Total: {{ pagination.total_items }} data)
+            </div>
+            <div class="flex items-center gap-1.5">
+                {% if pagination.has_previous %}
+                <a href="?tab={{ current_tab }}&q={{ search_query }}&jenis={{ selected_jenis }}&tahun={{ selected_tahun }}&page={{ pagination.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">Sebelumnya</a>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="?tab={{ current_tab }}&q={{ search_query }}&jenis={{ selected_jenis }}&tahun={{ selected_tahun }}&page={{ pagination.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">Berikutnya</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Confirmation Delete Modal -->
+    <div x-show="deleteModal"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="deleteModal = false"></div>
+
+            <div class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-3xl border border-slate-100">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+
+                <h3 class="text-base font-bold text-slate-900 leading-tight">
+                    <span x-text="isPermanent ? 'Konfirmasi Hapus Permanen' : 'Pindahkan ke Kotak Sampah?'"></span>
+                </h3>
+
+                <p class="mt-2 text-xs text-slate-500 font-body leading-relaxed">
+                    Apakah Anda yakin ingin menghapus regulasi <strong class="text-slate-800" x-text="deleteDocTitle"></strong>?
+                    <span x-show="!isPermanent" class="block mt-1">Dokumen ini akan disembunyikan dari beranda publik dan dapat dipulihkan kapan saja dari tab Kotak Sampah.</span>
+                    <span x-show="isPermanent" class="block mt-1 text-rose-600 font-semibold">Perhatian: Tindakan ini permanen dan data beserta file tidak dapat dipulihkan!</span>
+                </p>
+
+                <form :action="'/admin-panel/documents/' + deleteDocId + '/delete/'" method="POST" class="mt-6 flex items-center justify-end gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="permanent" :value="isPermanent ? '1' : '0'">
+
+                    <button type="button" @click="deleteModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Batal
+                    </button>
+
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-sm transition">
+                        <span x-text="isPermanent ? 'Hapus Permanen' : 'Ya, Pindahkan'"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

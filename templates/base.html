@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ APP_TITLE }} - {{ INSTITUTION_NAME }}{% endblock %}</title>
+    <meta name="description"
+        content="{% block meta_description %}Jaringan Dokumentasi dan Informasi Hukum (JDIH) Badan Kepegawaian Daerah Kabupaten Sidoarjo. Akses regulasi kepegawaian, Perbup, SK, Perda, dan Surat Edaran resmi secara transparan.{% endblock %}">
+
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS (via official CDN with institutional color config) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            50: '#f0f4f9',
+                            100: '#dde6f2',
+                            200: '#c0d2e8',
+                            300: '#94b5db',
+                            400: '#6293cb',
+                            500: '#3e75b8',
+                            600: '#2b5ca0',
+                            700: '#224881',
+                            800: '#1d3b6a',
+                            900: '#0f2240',
+                            950: '#0a162b',
+                        },
+                        sidoarjo: {
+                            gold: '#D97706',
+                            blue: '#1E3A8A',
+                            emerald: '#059669',
+                            slate: '#0F172A',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX for smooth real-time search & filtering without page reloads -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- Alpine.js for client micro-interactions -->
+    <script defer src="https://unpkg.com/alpinejs@3.14.0/dist/cdn.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="flex flex-col min-h-screen text-slate-800 antialiased font-sans">
+    <!-- Top Government Header Banner -->
+    <div class="bg-navy-950 text-slate-300 text-xs py-2 px-4 border-b border-navy-900">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Portal Resmi JDIH Pemerintah Kabupaten Sidoarjo</span>
+                <span class="text-slate-500">|</span>
+                <span class="hidden sm:inline text-slate-400">Terintegrasi Standar Regulasi JDIHN & JDIH BKN</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs">
+                <a href="https://sidoarjokab.go.id" target="_blank" rel="noopener"
+                    class="hover:text-white transition flex items-center gap-1">
+                    <span>Pemkab Sidoarjo</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+                <span class="text-slate-600">|</span>
+                {% if IS_AUTHENTICATED_ADMIN %}
+                <a href="{% url 'admin_panel:dashboard' %}"
+                    class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Panel Admin ({{ ADMIN_USER.name|default:"Admin" }})</span>
+                </a>
+                {% else %}
+                <a href="{% url 'admin_panel:login' %}"
+                    class="hover:text-white transition flex items-center gap-1 text-slate-300">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Login Pengelola BKD</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm"
+        x-data="{ mobileMenu: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Brand -->
+                <a href="{% url 'documents:index' %}" class="flex items-center gap-3.5 group">
+                    <div class="w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                        <img src="/static/img/logo-pemkab.png" alt="Logo Pemkab Sidoarjo" class="w-12 h-12 object-contain drop-shadow-sm">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl font-extrabold tracking-tight text-navy-950 font-sans">JDIH BKD</span>
+                            <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-blue-50 text-blue-800 rounded-md border border-blue-200/60">SIDOARJO</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium">Badan Kepegawaian Daerah Kabupaten Sidoarjo</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links (Scope Tunggal: Hanya Beranda) -->
+                <nav class="hidden md:flex items-center gap-2 text-sm font-medium">
+                    <a href="{% url 'documents:index' %}"
+                        class="px-4 py-2 rounded-xl text-blue-700 bg-blue-50 font-semibold transition">
+                        Beranda
+                    </a>
+                </nav>
+
+                <!-- Action / Admin Link -->
+                <div class="hidden sm:flex items-center gap-3">
+                    {% if IS_AUTHENTICATED_ADMIN %}
+                    <a href="{% url 'admin_panel:dashboard' %}"
+                        class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-navy-900 text-white hover:bg-navy-800 shadow-sm transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        <span>Panel Admin</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'admin_panel:login' %}"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Login Pengelola</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button @click="mobileMenu = !mobileMenu"
+                        class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="!mobileMenu">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="mobileMenu"
+                            style="display:none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div x-show="mobileMenu" class="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 shadow-lg"
+            style="display:none;" @click.away="mobileMenu = false">
+            <a href="{% url 'documents:index' %}"
+                class="block px-3 py-2 rounded-xl text-base font-semibold text-blue-700 bg-blue-50">Beranda</a>
+            <div class="pt-3 border-t border-slate-100">
+                {% if IS_AUTHENTICATED_ADMIN %}
+                <a href="{% url 'admin_panel:dashboard' %}"
+                    class="w-full text-center block px-4 py-2.5 rounded-xl bg-navy-900 text-white font-medium text-sm">Panel Admin</a>
+                {% else %}
+                <a href="{% url 'admin_panel:login' %}"
+                    class="w-full text-center block px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium text-sm">Login Pengelola BKD</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Messages / Alerts -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
+        {% for message in messages %}
+        <div class="rounded-xl p-4 mb-3 text-sm flex items-start gap-3 shadow-sm {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}"
+            role="alert">
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {% if message.tags == 'success' %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {% elif message.tags == 'error' %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {% else %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {% endif %}
+            </svg>
+            <div class="flex-1 font-medium">{{ message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Institutional Footer -->
+    <footer class="bg-navy-950 text-slate-300 border-t border-navy-900 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+                <!-- Col 1: Instansi & Profil -->
+                <div class="md:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-lg font-bold">JDIH BKD Sidoarjo</h3>
+                            <p class="text-xs text-slate-400">Jaringan Dokumentasi dan Informasi Hukum Kepegawaian</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 leading-relaxed pr-6">
+                        Penyedia basis data regulasi dan dokumentasi hukum terpadu Badan Kepegawaian Daerah Kabupaten
+                        Sidoarjo. Dikelola guna menjamin kepastian hukum, transparansi informasi publik, serta mendukung
+                        meritokrasi manajemen ASN.
+                    </p>
+                    <div class="pt-2 text-xs text-slate-400 space-y-1.5">
+                        <p class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Jl. Majapahit No. 5, Sidoarjo, Jawa Timur 61215</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span>bkd@sidoarjokab.go.id</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Col 2: Kategori Populer -->
+                <div>
+                    <h4 class="text-white font-semibold text-sm tracking-wider uppercase mb-4">Kategori Regulasi</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="{% url 'documents:index' %}?kategori=Manajemen+Kinerja+%26+SKP"
+                                class="hover:text-white transition">Kinerja & SKP</a></li>
+                        <li><a href="{% url 'documents:index' %}?kategori=Pengadaan+ASN+(CPNS+%26+PPPK)"
+                                class="hover:text-white transition">Pengadaan CASN & PPPK</a></li>
+                        <li><a href="{% url 'documents:index' %}?kategori=Mutasi,+Promosi+%26+Jabatan+Fungsional"
+                                class="hover:text-white transition">Mutasi & Jabatan</a></li>
+                        <li><a href="{% url 'documents:index' %}?kategori=Disiplin+Pegawai+%26+Kode+Etik"
+                                class="hover:text-white transition">Disiplin & Kode Etik</a></li>
+                        <li><a href="{% url 'documents:index' %}?kategori=Kesejahteraan,+Cuti+%26+Pensiun"
+                                class="hover:text-white transition">Kesejahteraan & TPP</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Tautan Terkait -->
+                <div>
+                    <h4 class="text-white font-semibold text-sm tracking-wider uppercase mb-4">Tautan Terkait</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="https://bkd.sidoarjokab.go.id" target="_blank" rel="noopener"
+                                class="hover:text-white transition flex items-center justify-between"><span>Website BKD
+                                    Sidoarjo</span><svg class="w-3.5 h-3.5 text-slate-500" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg></a></li>
+                        <li><a href="https://sidoarjokab.go.id" target="_blank" rel="noopener"
+                                class="hover:text-white transition flex items-center justify-between"><span>Portal
+                                    Pemkab Sidoarjo</span><svg class="w-3.5 h-3.5 text-slate-500" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg></a></li>
+                        <li><a href="https://jdih.bkn.go.id" target="_blank" rel="noopener"
+                                class="hover:text-white transition flex items-center justify-between"><span>JDIH BKN
+                                    RI</span><svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg></a></li>
+                        <li><a href="https://jdihn.go.id" target="_blank" rel="noopener"
+                                class="hover:text-white transition flex items-center justify-between"><span>Portal JDIHN
+                                    Nasional</span><svg class="w-3.5 h-3.5 text-slate-500" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg></a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                class="border-t border-navy-900 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p>&copy; {{ CURRENT_YEAR }} Badan Kepegawaian Daerah Kabupaten Sidoarjo. Hak Cipta Dilindungi.</p>
+                <div class="flex items-center gap-4">
+                    <span>Versi 1.0 (Django & Firebase Architecture)</span>
+                    <span>•</span>
+                    <a href="{% url 'admin_panel:login' %}" class="hover:text-slate-400">Akses Khusus Pengelola</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>
