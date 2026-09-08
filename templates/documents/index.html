@@ -323,8 +323,7 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Jenis Regulasi</option>
                                 {% for code, label in document_types %}
-                                <option value="{{ code }}" {% if selected_jenis==code %}selected{% endif %}>{{ label }}
-                                </option>
+                                    <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -336,8 +335,7 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Tahun</option>
                                 {% for yr in available_years %}
-                                <option value="{{ yr }}" {% if selected_tahun==yr|stringformat:"i" %}selected{% endif
-                                    %}>{{ yr }}</option>
+                                    <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -350,8 +348,7 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Kategori</option>
                                 {% for cat in categories %}
-                                <option value="{{ cat }}" {% if selected_kategori==cat %}selected{% endif %}>{{ cat }}
-                                </option>
+                                    <option value="{{ cat }}" {% if selected_kategori == cat %}selected{% endif %}>{{ cat }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -361,14 +358,10 @@
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Status Hukum</label>
                             <select name="status" id="filter-status"
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                                <option value="semua" {% if selected_status=='semua' or not selected_status %}selected{%
-                                    endif %}>Semua Status</option>
-                                <option value="berlaku" {% if selected_status=='berlaku' %}selected{% endif %}>Hanya
-                                    Berlaku</option>
-                                <option value="diubah" {% if selected_status=='diubah' %}selected{% endif %}>Diubah
-                                </option>
-                                <option value="dicabut" {% if selected_status=='dicabut' %}selected{% endif %}>Dicabut
-                                </option>
+                                <option value="semua" {% if selected_status == 'semua' or not selected_status %}selected{% endif %}>Semua Status</option>
+                                <option value="berlaku" {% if selected_status == 'berlaku' %}selected{% endif %}>Hanya Berlaku</option>
+                                <option value="diubah" {% if selected_status == 'diubah' %}selected{% endif %}>Diubah</option>
+                                <option value="dicabut" {% if selected_status == 'dicabut' %}selected{% endif %}>Dicabut</option>
                             </select>
                         </div>
 
@@ -377,14 +370,10 @@
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Urutan Hasil</label>
                             <select name="sort" id="filter-sort"
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                                <option value="terbaru" {% if selected_sort=='terbaru' %}selected{% endif %}>Terbaru
-                                    Diterbitkan</option>
-                                <option value="populer" {% if selected_sort=='populer' %}selected{% endif %}>Paling
-                                    Sering Dilihat</option>
-                                <option value="tahun_desc" {% if selected_sort=='tahun_desc' %}selected{% endif %}>Tahun
-                                    (Baru ke Lama)</option>
-                                <option value="tahun_asc" {% if selected_sort=='tahun_asc' %}selected{% endif %}>Tahun
-                                    (Lama ke Baru)</option>
+                                <option value="terbaru" {% if selected_sort == 'terbaru' %}selected{% endif %}>Terbaru Diterbitkan</option>
+                                <option value="populer" {% if selected_sort == 'populer' %}selected{% endif %}>Paling Sering Dilihat</option>
+                                <option value="tahun_desc" {% if selected_sort == 'tahun_desc' %}selected{% endif %}>Tahun (Baru ke Lama)</option>
+                                <option value="tahun_asc" {% if selected_sort == 'tahun_asc' %}selected{% endif %}>Tahun (Lama ke Baru)</option>
                             </select>
                         </div>
                     </div>
