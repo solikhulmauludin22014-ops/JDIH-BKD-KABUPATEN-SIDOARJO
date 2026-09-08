@@ -91,7 +91,7 @@ def session_login_api(request):
     """
     try:
         data = json.loads(request.body)
-        id_token = data.get('id_token')
+        id_token = data.get('idToken') or data.get('id_token')
         email = data.get('email', '')
 
         if not id_token:
@@ -99,14 +99,16 @@ def session_login_api(request):
 
         decoded = verify_firebase_id_token(id_token)
         if decoded:
+            user_email = decoded.get('email') or email or 'admin@bkd.sidoarjokab.go.id'
+            raw_name = decoded.get('name') or user_email.split('@')[0]
             request.session['admin_user'] = {
-                'uid': decoded.get('uid'),
-                'email': decoded.get('email', email),
-                'name': decoded.get('name', 'Admin BKD Sidoarjo'),
+                'uid': decoded.get('uid', 'admin_uid'),
+                'email': user_email,
+                'name': raw_name.title() if raw_name else 'Admin BKD Sidoarjo',
             }
             return JsonResponse({'status': 'ok', 'redirect': reverse('admin_panel:dashboard')})
         else:
-            return JsonResponse({'status': 'error', 'message': 'Token Firebase tidak valid.'}, status=401)
+            return JsonResponse({'status': 'error', 'message': 'Token Firebase tidak valid atau telah kedaluwarsa.'}, status=401)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 

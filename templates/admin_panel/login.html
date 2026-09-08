@@ -27,9 +27,7 @@
         }
     </script>
 
-    <!-- Firebase Compat SDK for Web Authentication -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
 
     <link rel="stylesheet" href="/static/css/custom.css">
 </head>
@@ -154,8 +152,11 @@
         </div>
     </div>
 
-    <!-- Firebase Auth JavaScript Client Script -->
-    <script>
+    <!-- Firebase Auth Modular SDK 12.18.0 Client Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "{{ FIREBASE_WEB_CONFIG.apiKey }}",
             authDomain: "{{ FIREBASE_WEB_CONFIG.authDomain }}",
@@ -181,84 +182,86 @@
             alertBox.innerText = msg;
         }
 
-        // Check if Firebase Web Config is present
-        let firebaseApp = null;
+        let auth = null;
         if (firebaseConfig.apiKey && firebaseConfig.apiKey.length > 5) {
             try {
-                firebaseApp = firebase.initializeApp(firebaseConfig);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
             } catch (e) {
-                console.warn("Firebase Client Init Note:", e);
+                console.warn("Firebase Init Note:", e);
             }
         }
 
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', (e) => {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
 
-            // If Firebase Web App is initialized, authenticate via Firebase Client SDK
-            if (firebaseApp && firebase.auth) {
+            if (auth) {
                 e.preventDefault();
                 submitBtn.disabled = true;
                 btnText.innerText = "Memverifikasi via Firebase...";
                 btnSpinner.classList.remove('hidden');
 
-                try {
-                    const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-                    const idToken = await userCredential.user.getIdToken();
+                signInWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        return userCredential.user.getIdToken();
+                    })
+                    .then((idToken) => {
+                        // Kirim idToken ke endpoint verifikasi sesi Django
+                        return fetch("{% url 'admin_panel:login_verify' %}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({ idToken, email })
+                        });
+                    })
+                    .then(async (response) => {
+                        const resData = await response.json().catch(() => ({}));
+                        if (response.ok && resData.status === 'ok') {
+                            btnText.innerText = "Berhasil! Mengalihkan...";
+                            window.location.href = resData.redirect || "{% url 'admin_panel:dashboard' %}";
+                        } else {
+                            showAlert(resData.message || "Gagal memvalidasi sesi admin.");
+                            submitBtn.disabled = false;
+                            btnText.innerText = "Masuk ke Panel Admin";
+                            btnSpinner.classList.add('hidden');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Firebase Login Error:", error);
+                        let errorMsg = "Gagal login: ";
+                        const code = error.code || "";
+                        const msg = error.message || "";
 
-                    // Send ID token to Django session endpoint
-                    const response = await fetch("{% url 'admin_panel:session_login_api' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}',
-                        },
-                        body: JSON.stringify({
-                            id_token: idToken,
-                            email: email
-                        })
-                    });
+                        if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+                            errorMsg = "Email atau kata sandi tidak sesuai. Silakan periksa kembali.";
+                        } else if (code === 'auth/too-many-requests') {
+                            errorMsg = "Terlalu banyak percobaan gagal. Akses dibatasi sementara, silakan coba lagi beberapa saat lagi.";
+                        } else if (code === 'auth/invalid-email') {
+                            errorMsg = "Format alamat email tidak valid.";
+                        } else if (code === 'auth/user-disabled') {
+                            errorMsg = "Akun pengelola ini telah dinonaktifkan oleh administrator.";
+                        } else if (code === 'auth/network-request-failed') {
+                            errorMsg = "Gagal terhubung ke server autentikasi. Pastikan koneksi internet aktif.";
+                        } else if (code === 'auth/api-key-not-valid' || msg.includes('api-key-not-valid')) {
+                            errorMsg = "Web API Key Firebase tidak valid. Pastikan Web API Key dari Firebase Console sudah terpasang di Environment Variables Vercel.";
+                        } else if (code === 'auth/unauthorized-domain' || msg.includes('authorized-domain')) {
+                            errorMsg = "Domain ini belum diizinkan. Silakan tambahkan domain vercel.app ke Authorized Domains di Firebase Console -> Authentication -> Settings.";
+                        } else if (code === 'auth/operation-not-allowed' || msg.includes('CONFIGURATION_NOT_FOUND')) {
+                            errorMsg = "Metode login Email/Password belum diaktifkan di Firebase Console. Pastikan Sign-in method diaktifkan.";
+                        } else {
+                            errorMsg += (error.message || error);
+                        }
 
-                    const resData = await response.json();
-                    if (resData.status === 'ok') {
-                        btnText.innerText = "Berhasil! Mengalihkan...";
-                        window.location.href = resData.redirect || "{% url 'admin_panel:dashboard' %}";
-                    } else {
-                        showAlert(resData.message || "Gagal memvalidasi sesi admin.");
+                        showAlert(errorMsg);
                         submitBtn.disabled = false;
                         btnText.innerText = "Masuk ke Panel Admin";
                         btnSpinner.classList.add('hidden');
-                    }
-                } catch (err) {
-                    console.error("Firebase Login Error:", err);
-                    let errorMsg = "Gagal login Firebase: ";
-                    const code = err.code || "";
-                    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-                        errorMsg = "Email atau kata sandi tidak sesuai. Silakan periksa kembali.";
-                    } else if (code === 'auth/too-many-requests') {
-                        errorMsg = "Terlalu banyak percobaan gagal. Akses dibatasi sementara, silakan coba lagi beberapa saat lagi.";
-                    } else if (code === 'auth/invalid-email') {
-                        errorMsg = "Format alamat email tidak valid.";
-                    } else if (code === 'auth/user-disabled') {
-                        errorMsg = "Akun pengelola ini telah dinonaktifkan oleh administrator.";
-                    } else if (code === 'auth/network-request-failed') {
-                        errorMsg = "Gagal terhubung ke server autentikasi. Pastikan koneksi internet aktif.";
-                    } else if (code === 'auth/api-key-not-valid' || (err.message && err.message.includes('api-key-not-valid'))) {
-                        errorMsg = "Web API Key Firebase tidak valid. Pastikan Web API Key dari Firebase Console sudah terpasang di Environment Variables Vercel.";
-                    } else if (code === 'auth/unauthorized-domain' || (err.message && err.message.includes('authorized-domain'))) {
-                        errorMsg = "Domain ini belum diizinkan. Silakan tambahkan domain vercel.app ke Authorized Domains di Firebase Console -> Authentication -> Settings.";
-                    } else if (code === 'auth/operation-not-allowed' || (err.message && err.message.includes('CONFIGURATION_NOT_FOUND'))) {
-                        errorMsg = "Metode login Email/Password belum diaktifkan di Firebase Console. Pastikan Sign-in method diaktifkan.";
-                    } else {
-                        errorMsg += (err.message || err);
-                    }
-                    showAlert(errorMsg);
-                    submitBtn.disabled = false;
-                    btnText.innerText = "Masuk ke Panel Admin";
-                    btnSpinner.classList.add('hidden');
-                }
+                    });
             } else {
-                // Regular submission (Django server handles verification & session)
+                // Fallback: regular submission (Django server handles verification & session)
                 btnText.innerText = "Memproses...";
                 btnSpinner.classList.remove('hidden');
             }
