@@ -1,2 +1,5 @@
 [python]
 python_executable = ".venv/Scripts/python.exe"
+
+[check]
+exclude = ["**/__pyrefly_virtual__/**", "**/inmemory/**"]
