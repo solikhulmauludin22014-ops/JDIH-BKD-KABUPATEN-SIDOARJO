@@ -21,19 +21,9 @@
      x-data="{
          isFullscreen: false,
          copied: false,
-         pdfStatus: 'loading',
          fileUrl: '{{ document.file_url|escapejs }}',
-         async checkPdf() {
-             if (!this.fileUrl) { this.pdfStatus = 'none'; return; }
-             try {
-                 const res = await fetch(this.fileUrl, { method: 'HEAD', cache: 'no-store' });
-                 this.pdfStatus = (res.ok && res.status < 400) ? 'ok' : 'error';
-             } catch(e) {
-                 this.pdfStatus = 'error';
-             }
-         }
-     }"
-     x-init="checkPdf()">
+         pdfStatus: '{{ document.file_url }}' ? 'ok' : 'none',
+     }">
     <!-- Header Card -->
     <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 mb-8">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
