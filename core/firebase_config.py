@@ -15,13 +15,14 @@ logger = logging.getLogger(__name__)
 
 _firebase_app = None
 _firestore_db = None
-_storage_bucket = None
+_storage_bucket = None  # Firebase Storage tidak digunakan (diganti Appwrite Storage)
 _is_mock = False
 
 
 def initialize_firebase():
     """
     Initialize Firebase Admin SDK or enable mock provider fallback.
+    Firebase Storage TIDAK diinisialisasi — gunakan Appwrite Storage.
     """
     global _firebase_app, _firestore_db, _storage_bucket, _is_mock
     
@@ -36,8 +37,8 @@ def initialize_firebase():
         if firebase_admin._apps:
             _firebase_app = firebase_admin.get_app()
             _firestore_db = firestore.client()
-            bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', None)
-            _storage_bucket = storage.bucket(bucket_name) if bucket_name else None
+            # Firebase Storage tidak digunakan — Appwrite Storage menggantikan
+            _storage_bucket = None
             _is_mock = False
             return _firestore_db, _storage_bucket, _is_mock
 
@@ -85,9 +86,8 @@ def initialize_firebase():
         # Initialize if credentials found
         if cred:
             options = {}
-            bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', None)
-            if bucket_name:
-                options['storageBucket'] = bucket_name
+            # Firebase Storage tidak diinisialisasi — diganti Appwrite Storage
+            # Tidak perlu set storageBucket di options
 
             _firebase_app = firebase_admin.initialize_app(cred, options)
             print(f"[FIREBASE CONFIG] Firebase Admin App initialized successfully (name: {_firebase_app.name})")
@@ -103,19 +103,21 @@ def initialize_firebase():
                     logger.info(f"Info Firebase: {msg_str[:120]}. Mengaktifkan mode data lokal siap-pakai.")
                 _firestore_db = None
 
-            if bucket_name:
-                try:
-                    _storage_bucket = storage.bucket(bucket_name)
-                except Exception as se:
-                    logger.warning(f"Storage bucket note: {se}")
+            # Firebase Storage tidak diinisialisasi — Appwrite Storage digunakan
+            # bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', None)
+            # if bucket_name:
+            #     try:
+            #         _storage_bucket = storage.bucket(bucket_name)
+            #     except Exception as se:
+            #         logger.warning(f"Storage bucket note: {se}")
 
             if _firestore_db is not None:
                 _is_mock = False
-                logger.info("Firebase Admin SDK & Firestore successfully initialized.")
-                return _firestore_db, _storage_bucket, _is_mock
+                logger.info("Firebase Admin SDK & Firestore berhasil diinisialisasi. [Appwrite Storage aktif sebagai pengganti Firebase Storage]")
+                return _firestore_db, None, _is_mock
             else:
                 _is_mock = True
-                return None, _storage_bucket, _is_mock
+                return None, None, _is_mock
         else:
             print("[FIREBASE CONFIG WARNING] No Firebase credentials found in environment or local file.")
 

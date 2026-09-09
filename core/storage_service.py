@@ -1,17 +1,42 @@
 """
-Storage service for managing document file uploads (PDF) to Firebase Storage.
+Storage service for managing document file uploads (PDF) to Appwrite Storage.
+Firebase Storage telah diganti sepenuhnya dengan Appwrite Storage.
 """
 
 import os
-import uuid
 import logging
-from datetime import datetime, timedelta
 from django.conf import settings
-from .firebase_config import get_storage_bucket, is_mock_mode
 
 logger = logging.getLogger(__name__)
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+def _get_appwrite_storage():
+    """
+    Initialize and return Appwrite Client + Storage instance.
+    Raises RuntimeError if env vars not set.
+    """
+    from appwrite.client import Client
+    from appwrite.services.storage import Storage
+
+    endpoint = getattr(settings, 'APPWRITE_ENDPOINT', None) or os.environ.get('APPWRITE_ENDPOINT')
+    project_id = getattr(settings, 'APPWRITE_PROJECT_ID', None) or os.environ.get('APPWRITE_PROJECT_ID')
+    api_key = getattr(settings, 'APPWRITE_API_KEY', None) or os.environ.get('APPWRITE_API_KEY')
+
+    if not endpoint or not project_id or not api_key:
+        raise RuntimeError(
+            "Konfigurasi Appwrite belum lengkap. "
+            "Pastikan APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, dan APPWRITE_API_KEY "
+            "telah diisi di file .env."
+        )
+
+    client = Client()
+    client.set_endpoint(endpoint)
+    client.set_project(project_id)
+    client.set_key(api_key)
+
+    return Storage(client)
 
 
 def validate_pdf_file(uploaded_file):
@@ -40,110 +65,96 @@ def validate_pdf_file(uploaded_file):
     return True, None
 
 
-def upload_pdf_to_storage(uploaded_file, folder="documents"):
+def upload_pdf_to_storage(uploaded_file):
     """
-    Uploads a PDF file to Firebase Storage.
+    Uploads a PDF file to Appwrite Storage.
     Returns a dict with:
-        file_url: str
-        file_name: str
-        ukuran_file: int (bytes)
-        storage_path: str
+        file_url: str         — URL publik untuk pratinjau/unduh
+        file_name: str        — Nama file asli
+        ukuran_file: int      — Ukuran dalam bytes
+        appwrite_file_id: str — ID file di Appwrite (diperlukan untuk hapus)
+    Raises ValueError jika validasi gagal.
+    Raises RuntimeError jika upload gagal.
     """
+    from appwrite.input_file import InputFile
+    from appwrite.id import ID
+
     is_valid, error = validate_pdf_file(uploaded_file)
     if not is_valid:
         raise ValueError(error)
 
-    original_name = uploaded_file.name
-    clean_name = "".join(c for c in original_name if c.isalnum() or c in "._- ")
-    unique_id = uuid.uuid4().hex[:10]
-    year = datetime.now().year
-    blob_path = f"{folder}/{year}/{unique_id}_{clean_name}"
+    original_filename = uploaded_file.name
 
-    bucket = get_storage_bucket()
-    encoded_path = blob_path.replace('/', '%2F')
+    # Baca bytes dari uploaded file
+    if hasattr(uploaded_file, 'seek'):
+        uploaded_file.seek(0)
+    file_bytes = uploaded_file.read()
 
-    if bucket:
-        try:
-            blob = bucket.blob(blob_path)
-            blob.content_type = 'application/pdf'
-            blob.metadata = {
-                'original_filename': original_name,
-                'uploaded_at': datetime.now().isoformat(),
-            }
+    bucket_id = getattr(settings, 'APPWRITE_BUCKET_ID', None) or os.environ.get('APPWRITE_BUCKET_ID')
+    endpoint = getattr(settings, 'APPWRITE_ENDPOINT', None) or os.environ.get('APPWRITE_ENDPOINT')
+    project_id = getattr(settings, 'APPWRITE_PROJECT_ID', None) or os.environ.get('APPWRITE_PROJECT_ID')
 
-            # Rewind buffer/file and upload directly in-memory
-            if hasattr(uploaded_file, 'seek'):
-                uploaded_file.seek(0)
-            blob.upload_from_file(uploaded_file, content_type='application/pdf')
-
-            # Attempt to make public or generate signed/download URL
-            file_url = None
-            try:
-                blob.make_public()
-                file_url = blob.public_url
-            except Exception:
-                pass
-
-            if not file_url:
-                try:
-                    file_url = blob.generate_signed_url(
-                        expiration=timedelta(days=365 * 10),
-                        method='GET'
-                    )
-                except Exception:
-                    pass
-
-            if not file_url:
-                bucket_name = bucket.name
-                file_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_path}?alt=media"
-
-            return {
-                'file_url': file_url,
-                'file_name': original_name,
-                'ukuran_file': uploaded_file.size,
-                'storage_path': blob_path,
-            }
-        except Exception as e:
-            logger.error(f"Gagal mengunggah file ke Firebase Storage: {e}")
-            err_msg = str(e).lower()
-            if "404" in err_msg or "not exist" in err_msg or "not found" in err_msg:
-                logger.warning("Bucket Firebase Storage belum dibuat/diaktifkan di Firebase Console. Menggunakan URL cloud Firebase Storage fallback secara in-memory.")
-                b_name = bucket.name if hasattr(bucket, 'name') else getattr(settings, 'FIREBASE_STORAGE_BUCKET', 'jdih-bkd-sidoarjo.firebasestorage.app')
-                file_url = f"https://firebasestorage.googleapis.com/v0/b/{b_name}/o/{encoded_path}?alt=media"
-                return {
-                    'file_url': file_url,
-                    'file_name': original_name,
-                    'ukuran_file': uploaded_file.size,
-                    'storage_path': blob_path,
-                }
-            raise RuntimeError(f"Gagal mengunggah file ke Firebase Storage: {str(e)}")
-
-    # Pure in-memory fallback without touching local disk (serverless safe)
-    bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', 'jdih-bkd-sidoarjo.firebasestorage.app')
-    file_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_path}?alt=media"
-    logger.info(f"Storage bucket offline: file diproses secara in-memory dengan path {blob_path}")
-    return {
-        'file_url': file_url,
-        'file_name': original_name,
-        'ukuran_file': uploaded_file.size,
-        'storage_path': blob_path,
-    }
-
-
-def delete_pdf_from_storage(storage_path):
-    """
-    Deletes a file from Firebase Storage.
-    """
-    if is_mock_mode() or not storage_path:
-        return True
+    if not bucket_id:
+        raise RuntimeError("APPWRITE_BUCKET_ID belum dikonfigurasi di .env.")
 
     try:
-        bucket = get_storage_bucket()
-        if bucket:
-            blob = bucket.blob(storage_path)
-            if blob.exists():
-                blob.delete()
-        return True
+        storage = _get_appwrite_storage()
+
+        result = storage.create_file(
+            bucket_id=bucket_id,
+            file_id=ID.unique(),
+            file=InputFile.from_bytes(file_bytes, filename=original_filename),
+        )
+
+        file_id = result['$id']
+        file_url = (
+            f"{endpoint}/storage/buckets/{bucket_id}/files/{file_id}/view"
+            f"?project={project_id}"
+        )
+
+        logger.info(f"[APPWRITE STORAGE] File '{original_filename}' berhasil diupload, ID: {file_id}")
+
+        return {
+            'file_url': file_url,
+            'file_name': original_filename,
+            'ukuran_file': uploaded_file.size,
+            'appwrite_file_id': file_id,
+        }
+
     except Exception as e:
-        logger.warning(f"Gagal menghapus file {storage_path} dari Firebase Storage: {e}")
+        logger.error(f"[APPWRITE STORAGE] Gagal mengupload file '{original_filename}': {e}")
+        raise RuntimeError(f"Gagal mengunggah file ke Appwrite Storage: {str(e)}")
+
+
+def delete_pdf_from_storage(appwrite_file_id):
+    """
+    Menghapus file dari Appwrite Storage berdasarkan file ID.
+    Returns True jika berhasil atau file tidak ditemukan (sudah terhapus).
+    Returns False jika ada error lain.
+
+    Parameter:
+        appwrite_file_id: str — nilai $id dari dokumen Firestore field 'appwrite_file_id'
+    """
+    if not appwrite_file_id:
+        logger.warning("[APPWRITE STORAGE] delete_pdf_from_storage dipanggil tanpa appwrite_file_id, dilewati.")
+        return True
+
+    bucket_id = getattr(settings, 'APPWRITE_BUCKET_ID', None) or os.environ.get('APPWRITE_BUCKET_ID')
+    if not bucket_id:
+        logger.error("[APPWRITE STORAGE] APPWRITE_BUCKET_ID tidak dikonfigurasi, tidak bisa menghapus file.")
+        return False
+
+    try:
+        storage = _get_appwrite_storage()
+        storage.delete_file(bucket_id=bucket_id, file_id=appwrite_file_id)
+        logger.info(f"[APPWRITE STORAGE] File ID '{appwrite_file_id}' berhasil dihapus dari Appwrite.")
+        return True
+
+    except Exception as e:
+        err_str = str(e).lower()
+        # Jika file memang sudah tidak ada, anggap sukses
+        if '404' in err_str or 'not found' in err_str or 'storage_file_not_found' in err_str:
+            logger.warning(f"[APPWRITE STORAGE] File ID '{appwrite_file_id}' tidak ditemukan di Appwrite (mungkin sudah terhapus sebelumnya). Dianggap sukses.")
+            return True
+        logger.error(f"[APPWRITE STORAGE] Gagal menghapus file ID '{appwrite_file_id}' dari Appwrite: {e}")
         return False

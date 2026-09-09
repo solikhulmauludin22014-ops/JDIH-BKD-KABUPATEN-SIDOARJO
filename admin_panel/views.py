@@ -1,10 +1,11 @@
 """
 Views for Admin Panel JDIH BKD Sidoarjo.
 Handles Firebase Auth verification, Django signed-cookie sessions,
-and full CRUD with Firebase Firestore & Storage.
+and full CRUD with Firebase Firestore & Appwrite Storage.
 """
 
 import json
+import logging
 from datetime import datetime
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -16,6 +17,8 @@ from django.views.decorators.http import require_POST
 from core.decorators import admin_login_required
 from core.firebase_config import verify_firebase_id_token, is_mock_mode
 from core.storage_service import upload_pdf_to_storage, delete_pdf_from_storage
+
+logger = logging.getLogger(__name__)
 from documents.services import (
     get_documents,
     get_document_by_id,
@@ -194,14 +197,14 @@ def document_create_view(request):
         if form.is_valid():
             uploaded_file = form.cleaned_data['file_dokumen']
             try:
-                # 1. Upload to Firebase Storage
+                # 1. Upload ke Appwrite Storage
                 storage_result = upload_pdf_to_storage(uploaded_file)
 
                 # 2. Parse tags
                 raw_tags = form.cleaned_data.get('tags', '')
                 tags_list = [t.strip() for t in raw_tags.split(',') if t.strip()]
 
-                # 3. Prepare document data for Firestore
+                # 3. Siapkan data dokumen untuk Firestore
                 doc_payload = {
                     'judul': form.cleaned_data['judul'],
                     'nomor_dokumen': form.cleaned_data['nomor_dokumen'],
@@ -218,6 +221,7 @@ def document_create_view(request):
                     'file_url': storage_result['file_url'],
                     'file_name': storage_result['file_name'],
                     'ukuran_file': storage_result['ukuran_file'],
+                    'appwrite_file_id': storage_result['appwrite_file_id'],
                 }
 
                 admin_uid = request.session.get('admin_user', {}).get('uid', 'admin_bkd')
@@ -275,13 +279,25 @@ def document_edit_view(request, doc_id):
                     'tags': tags_list,
                 }
 
-                # If new file uploaded, upload to storage
+                # Jika ada file baru, upload ke Appwrite dan hapus file lama
                 new_file = form.cleaned_data.get('file_dokumen')
                 if new_file:
+                    # Hapus file lama dari Appwrite jika ada
+                    old_appwrite_file_id = document.get('appwrite_file_id')
+                    if old_appwrite_file_id:
+                        old_deleted = delete_pdf_from_storage(old_appwrite_file_id)
+                        if not old_deleted:
+                            logger.warning(
+                                f"[EDIT DOC] Gagal menghapus file lama Appwrite ID '{old_appwrite_file_id}' "
+                                f"untuk dokumen {doc_id}. Melanjutkan upload file baru."
+                            )
+
+                    # Upload file baru ke Appwrite
                     storage_result = upload_pdf_to_storage(new_file)
                     update_payload['file_url'] = storage_result['file_url']
                     update_payload['file_name'] = storage_result['file_name']
                     update_payload['ukuran_file'] = storage_result['ukuran_file']
+                    update_payload['appwrite_file_id'] = storage_result['appwrite_file_id']
 
                 update_document(doc_id, update_payload)
                 messages.success(request, f"Dokumen '{form.cleaned_data['nomor_dokumen']}' berhasil diperbarui.")
@@ -323,18 +339,31 @@ def document_edit_view(request, doc_id):
 @require_POST
 def document_delete_view(request, doc_id):
     """
-    Delete document. Default is soft delete (status = 'dihapus').
-    If permanent=1, deletes record permanently.
+    Delete document. Default adalah soft delete (status = 'dihapus').
+    Jika permanent=1, hapus permanen dari Firestore DAN dari Appwrite Storage.
     """
     permanent = request.POST.get('permanent') == '1'
     doc = get_document_by_id(doc_id)
     if not doc:
         raise Http404("Dokumen tidak ditemukan.")
 
+    # Jika hapus permanen, hapus file dari Appwrite terlebih dahulu
+    if permanent:
+        appwrite_file_id = doc.get('appwrite_file_id')
+        if appwrite_file_id:
+            storage_deleted = delete_pdf_from_storage(appwrite_file_id)
+            if not storage_deleted:
+                messages.warning(
+                    request,
+                    f"Peringatan: File PDF dokumen '{doc.get('nomor_dokumen')}' "
+                    f"gagal dihapus dari Appwrite Storage (mungkin sudah tidak ada). "
+                    f"Metadata Firestore tetap dihapus."
+                )
+
     success = delete_document(doc_id, soft=not permanent)
     if success:
         if permanent:
-            messages.success(request, f"Dokumen '{doc.get('nomor_dokumen')}' telah dihapus secara permanen.")
+            messages.success(request, f"Dokumen '{doc.get('nomor_dokumen')}' telah dihapus secara permanen (Firestore + Appwrite).")
         else:
             messages.success(request, f"Dokumen '{doc.get('nomor_dokumen')}' dipindahkan ke kotak sampah (soft delete).")
     else:
@@ -385,12 +414,34 @@ def document_bulk_action_view(request):
             messages.error(request, "Gagal memulihkan dokumen massal atau semua dokumen terpilih sudah tidak ada.")
     elif action in ['soft_delete', 'hard_delete']:
         soft = (action == 'soft_delete')
+
+        if not soft:
+            # Hapus file dari Appwrite terlebih dahulu untuk setiap dokumen
+            appwrite_failures = []
+            for doc_id in doc_ids:
+                doc = get_document_by_id(doc_id)
+                if doc:
+                    appwrite_file_id = doc.get('appwrite_file_id')
+                    if appwrite_file_id:
+                        storage_ok = delete_pdf_from_storage(appwrite_file_id)
+                        if not storage_ok:
+                            label = str(doc.get('nomor_dokumen') or doc_id)
+                            appwrite_failures.append(label)
+
+            if appwrite_failures:
+                messages.warning(
+                    request,
+                    f"Peringatan: File PDF berikut gagal dihapus dari Appwrite Storage "
+                    f"(mungkin sudah tidak ada): {', '.join(appwrite_failures)}. "
+                    f"Metadata Firestore tetap akan dihapus."
+                )
+
         count = bulk_delete_documents(doc_ids, soft=soft)
         if count > 0:
             if soft:
                 messages.success(request, f"{count} dokumen berhasil dipindahkan ke kotak sampah.")
             else:
-                messages.success(request, f"{count} dokumen telah dihapus secara permanen.")
+                messages.success(request, f"{count} dokumen telah dihapus secara permanen (Firestore + Appwrite).")
         else:
             messages.error(request, "Gagal menghapus dokumen massal atau semua dokumen terpilih sudah tidak ada.")
     else:

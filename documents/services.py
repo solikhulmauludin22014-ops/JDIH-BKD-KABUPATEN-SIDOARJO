@@ -274,7 +274,7 @@ def get_documents(
                 logger.info("Firestore 'documents' collection is empty. Auto-seeding initial BKD documents...")
                 for seed_doc in _MOCK_DOCUMENTS:
                     seed_payload = dict(seed_doc)
-                    s_id = seed_payload.pop('id')
+                    s_id = str(seed_payload.pop('id', ''))
                     coll_ref.document(s_id).set(seed_payload)
                 docs = coll_ref.stream()
                 results = [_format_firestore_doc(doc) for doc in docs]
@@ -299,7 +299,7 @@ def get_documents(
     # Filter tahun
     if tahun:
         try:
-            results = [d for d in results if int(d.get('tahun', 0)) == int(tahun)]
+            results = [d for d in results if int(str(d.get('tahun', 0))) == int(tahun)]
         except ValueError:
             pass
 
@@ -316,10 +316,10 @@ def get_documents(
         sq = search_query.strip().lower()
         results = [
             d for d in results
-            if sq in d.get('judul', '').lower()
-            or sq in d.get('nomor_dokumen', '').lower()
-            or sq in d.get('deskripsi', '').lower()
-            or any(sq in tag.lower() for tag in d.get('tags', []))
+            if sq in str(d.get('judul', '')).lower()
+            or sq in str(d.get('nomor_dokumen', '')).lower()
+            or sq in str(d.get('deskripsi', '')).lower()
+            or any(sq in tag.lower() for tag in (d.get('tags') or []))
         ]
 
     # Sorting
@@ -398,6 +398,7 @@ def create_document(data, user_uid="admin_bkd"):
         'file_url': data.get('file_url', ''),
         'file_name': data.get('file_name', ''),
         'ukuran_file': int(data.get('ukuran_file', 0)),
+        'appwrite_file_id': data.get('appwrite_file_id', ''),  # ID file di Appwrite Storage
         'view_count': 0,
         'download_count': 0,
         'created_at': now,
@@ -581,7 +582,7 @@ def increment_view_count(doc_id):
 
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
-            d['view_count'] = d.get('view_count', 0) + 1
+            d['view_count'] = int(d.get('view_count') or 0) + 1
             break
 
 
@@ -598,7 +599,7 @@ def increment_download_count(doc_id):
 
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
-            d['download_count'] = d.get('download_count', 0) + 1
+            d['download_count'] = int(d.get('download_count') or 0) + 1
             break
 
 
