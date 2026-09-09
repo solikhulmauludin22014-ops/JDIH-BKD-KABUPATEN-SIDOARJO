@@ -106,7 +106,9 @@ def upload_pdf_to_storage(uploaded_file):
             file=InputFile.from_bytes(file_bytes, filename=original_filename),
         )
 
-        file_id = result['$id']
+        # Appwrite SDK v2+ mengembalikan Pydantic model 'File', bukan dict.
+        # Jadi kita gunakan attribute access (.id) alih-alih result['$id']
+        file_id = result.id
         file_url = (
             f"{endpoint}/storage/buckets/{bucket_id}/files/{file_id}/view"
             f"?project={project_id}"
