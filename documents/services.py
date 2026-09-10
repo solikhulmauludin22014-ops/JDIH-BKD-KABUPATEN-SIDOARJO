@@ -2,6 +2,12 @@
 Document Service Layer for JDIH BKD Sidoarjo.
 Handles interactions with Firestore collection 'documents',
 and seamlessly handles fallback mock data if credentials are not configured.
+
+NOTE: _MOCK_DOCUMENTS is ONLY used as a local in-memory fallback when
+Firebase credentials are not configured (development / preview mode).
+It is NEVER automatically written to Firestore on production.
+To manually seed Firestore for development, run:
+    python manage.py seed_bkd_documents
 """
 
 import uuid
@@ -268,17 +274,10 @@ def get_documents(
             coll_ref = db.collection(COLLECTION_NAME)
             docs = coll_ref.stream()
             results = [_format_firestore_doc(doc) for doc in docs]
-
-            # Auto-seed if collection is completely empty
-            if not results:
-                logger.info("Firestore 'documents' collection is empty. Auto-seeding initial BKD documents...")
-                for seed_doc in _MOCK_DOCUMENTS:
-                    seed_payload = dict(seed_doc)
-                    s_id = str(seed_payload.pop('id', ''))
-                    coll_ref.document(s_id).set(seed_payload)
-                docs = coll_ref.stream()
-                results = [_format_firestore_doc(doc) for doc in docs]
-
+            # NOTE: Tidak ada auto-seed di sini.
+            # Koleksi kosong di Firestore adalah kondisi valid — tampilkan halaman kosong.
+            # Untuk mengisi data awal (dev only), gunakan:
+            #   python manage.py seed_bkd_documents
         except Exception as e:
             logger.error(f"Firestore query error: {e}. Falling back to mock dataset.")
             results = list(_MOCK_DOCUMENTS)
