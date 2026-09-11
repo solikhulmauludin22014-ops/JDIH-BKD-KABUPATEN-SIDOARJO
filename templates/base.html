@@ -99,7 +99,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    <span>Login Pengelola BKD</span>
+                    <span>Login Pengelola JDIH BKD Sidoarjo</span>
                 </a>
                 {% endif %}
             </div>
@@ -125,28 +125,7 @@
                     </div>
                 </a>
 
-                <!-- Action / Admin Link -->
-                <div class="flex items-center flex-shrink-0">
-                    {% if IS_AUTHENTICATED_ADMIN %}
-                    <a href="{% url 'admin_panel:dashboard' %}"
-                        class="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-navy-900 text-white hover:bg-navy-800 shadow-sm transition btn-press">
-                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                        </svg>
-                        <span>Panel Admin</span>
-                    </a>
-                    {% else %}
-                    <a href="{% url 'admin_panel:login' %}"
-                        class="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-navy-900 text-white hover:bg-navy-800 shadow-sm transition btn-press">
-                        <svg class="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Panel Admin</span>
-                    </a>
-                    {% endif %}
-                </div>
+                <!-- Action / Admin Link Removed -->
             </div>
         </div>
     </header>
