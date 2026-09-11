@@ -1,6 +1,13 @@
-/* Custom CSS for JDIH BKD Kabupaten Sidoarjo */
+/* =============================================
+   Custom CSS — JDIH BKD Kabupaten Sidoarjo
+   ============================================= */
 
-/* Smooth HTMX loading indicator */
+/* ── Smooth Scroll Global ── */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ── HTMX Loading Indicator ── */
 .htmx-indicator {
     display: none;
     opacity: 0;
@@ -17,7 +24,7 @@
     opacity: 1;
 }
 
-/* Glassmorphism helpers */
+/* ── Glassmorphism helpers ── */
 .glass-panel {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
@@ -25,26 +32,231 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Custom Scrollbar for PDF or tables */
+/* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
-
 ::-webkit-scrollbar-track {
     background: #f1f5f9;
 }
-
 ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
 
-/* Print Styles */
+/* =============================================
+   ANIMASI — Keyframes
+   ============================================= */
+
+/* fade-in + slide-up (hero & cards) */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* fade-in saja (overlay, gambar) */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* slide-in dari kanan (toast) */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* slide-out ke kanan (toast dismiss) */
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(110%);
+    }
+}
+
+/* Pulse untuk skeleton shimmer */
+@keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* =============================================
+   ANIMASI — Utility Classes
+   ============================================= */
+
+/* Hero element stagger */
+.hero-animate {
+    opacity: 0;
+    animation: fadeInUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hero-delay-0  { animation-delay: 0.05s; }
+.hero-delay-1  { animation-delay: 0.18s; }
+.hero-delay-2  { animation-delay: 0.30s; }
+.hero-delay-3  { animation-delay: 0.42s; }
+.hero-delay-4  { animation-delay: 0.55s; }
+
+/* Stat card fade-in */
+.stat-animate {
+    opacity: 0;
+    animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.stat-delay-0 { animation-delay: 0.55s; }
+.stat-delay-1 { animation-delay: 0.68s; }
+.stat-delay-2 { animation-delay: 0.80s; }
+.stat-delay-3 { animation-delay: 0.92s; }
+
+/* Document card stagger (dibuat via template Django) */
+.doc-card-animate {
+    opacity: 0;
+    animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* =============================================
+   TOAST NOTIFICATION
+   ============================================= */
+.toast-enter {
+    animation: slideInRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.toast-leave {
+    animation: slideOutRight 0.30s ease-in forwards;
+}
+
+/* Container toast — pojok kanan atas (dipakai di base.html & admin_base.html) */
+.toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    max-width: 24rem;
+    width: calc(100vw - 2.5rem);
+    pointer-events: none;
+}
+.toast-item {
+    pointer-events: all;
+}
+
+/* =============================================
+   SKELETON CARD LOADING
+   ============================================= */
+.skeleton-card {
+    background: #fff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    overflow: hidden;
+}
+.skeleton-line {
+    height: 0.875rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(
+        90deg,
+        #f1f5f9 25%,
+        #e2e8f0 50%,
+        #f1f5f9 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    margin-bottom: 0.5rem;
+}
+.skeleton-line.short  { width: 40%; }
+.skeleton-line.medium { width: 70%; }
+.skeleton-line.full   { width: 100%; }
+.skeleton-line.tall   { height: 1.5rem; }
+.skeleton-badge {
+    height: 1.5rem;
+    width: 5rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(
+        90deg,
+        #f1f5f9 25%,
+        #e2e8f0 50%,
+        #f1f5f9 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* =============================================
+   BUTTON MICRO-INTERACTIONS
+   ============================================= */
+.btn-press {
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-press:active {
+    transform: scale(0.96);
+}
+
+/* =============================================
+   ADMIN TAB TRANSITION
+   ============================================= */
+.admin-tab-content {
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+/* =============================================
+   REDUCED MOTION — Matikan semua animasi
+   ============================================= */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    .hero-animate,
+    .stat-animate,
+    .doc-card-animate {
+        opacity: 1;
+        animation: none;
+    }
+
+    .toast-enter,
+    .toast-leave {
+        animation: none;
+    }
+
+    .skeleton-line,
+    .skeleton-badge {
+        animation: none;
+        background: #e2e8f0;
+    }
+
+    .btn-press:active {
+        transform: none;
+    }
+
+    .admin-tab-content {
+        animation: none;
+    }
+
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* =============================================
+   PRINT STYLES
+   ============================================= */
 @media print {
     header, footer, .no-print, button {
         display: none !important;

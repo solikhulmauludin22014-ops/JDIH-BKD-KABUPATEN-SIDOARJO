@@ -17,17 +17,17 @@
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
 
-            <!-- Hero Left Column: Headline, Subtext, CTA -->
+            <!-- Hero Left Column: Headline, Subtext, CTA — Staggered Animation -->
             <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                 <!-- Pill Badge -->
-                <div
-                    class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-800 text-xs font-bold tracking-wide shadow-xs">
+                <div class="hero-animate hero-delay-0
+                    inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-800 text-xs font-bold tracking-wide shadow-xs">
                     <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
                     <span>PORTAL RESMI JDIH BKD KABUPATEN SIDOARJO</span>
                 </div>
 
                 <!-- Big Bold Headline -->
-                <h1 class="text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-slate-900 leading-[1.15]">
+                <h1 class="hero-animate hero-delay-1 text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-slate-900 leading-[1.15]">
                     Jaringan Dokumentasi <br class="hidden sm:inline">
                     <span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-600">
@@ -40,15 +40,15 @@
                 </h1>
 
                 <!-- Crisp Subtext -->
-                <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
+                <p class="hero-animate hero-delay-2 text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
                     Akses terpadu seluruh naskah Peraturan Bupati, Keputusan (SK), dan Surat Edaran Badan Kepegawaian
                     Daerah Kabupaten Sidoarjo secara terbuka, akurat, dan dapat diunduh langsung.
                 </p>
 
                 <!-- Action CTAs -->
-                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+                <div class="hero-animate hero-delay-3 pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
                     <a href="#pencarian-dokumen"
-                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all transform active:scale-98">
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all btn-press">
                         <span>Cari Dokumen Regulasi</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -57,7 +57,7 @@
                     </a>
 
                     <a href="https://bkd.sidoarjokab.go.id" target="_blank" rel="noopener noreferrer"
-                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100/80 text-slate-700 font-semibold text-sm border border-slate-300 shadow-xs transition">
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100/80 text-slate-700 font-semibold text-sm border border-slate-300 shadow-xs transition btn-press">
                         <span>Portal BKD Sidoarjo</span>
                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -68,7 +68,7 @@
 
                 <!-- Feature Mini Bullets -->
                 <div
-                    class="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-semibold text-slate-500">
+                    class="hero-animate hero-delay-4 pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-semibold text-slate-500">
                     <div class="flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
@@ -97,7 +97,7 @@
             </div>
 
             <!-- Hero Right Column: Flat-Style Vector Illustration & Floating Cards -->
-            <div class="lg:col-span-5 relative flex justify-center lg:justify-end">
+            <div class="hero-animate hero-delay-2 lg:col-span-5 relative flex justify-center lg:justify-end">
                 <div class="relative w-full max-w-md">
                     <!-- Decorative Backdrop Circle -->
                     <div
@@ -188,8 +188,39 @@
     </div>
 </section>
 
-<!-- Nextly-Style "Trusted By" Metrics Strip -->
-<section class="border-b border-slate-200/80 bg-white py-8 sm:py-10">
+<!-- Nextly-Style "Trusted By" Metrics Strip — Count-Up Animation -->
+<section class="border-b border-slate-200/80 bg-white py-8 sm:py-10"
+    x-data="{
+        observed: false,
+        counts: { total: 0, perbup: 0, sk: 0, se: 0 },
+        targets: {
+            total: {{ stats.total_documents }},
+            perbup: {{ stats.perbup_count }},
+            sk: {{ stats.sk_count }},
+            se: {{ stats.se_count }}
+        },
+        animateCount(key) {
+            const target = this.targets[key];
+            if (target === 0) return;
+            const duration = 1200;
+            const start = performance.now();
+            const step = (now) => {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                this.counts[key] = Math.round(eased * target);
+                if (progress < 1) requestAnimationFrame(step);
+                else this.counts[key] = target;
+            };
+            requestAnimationFrame(step);
+        },
+        startAll() {
+            if (this.observed) return;
+            this.observed = true;
+            Object.keys(this.targets).forEach(k => this.animateCount(k));
+        }
+    }"
+    x-intersect.once="startAll()">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-6">
             <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -199,10 +230,9 @@
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <!-- Metric 1: Total Dokumen -->
-            <div
-                class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
-                <div class="text-3xl sm:text-4xl font-black text-indigo-600 tracking-tight">
-                    {{ stats.total_documents }}
+            <div class="stat-animate stat-delay-0 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+                <div class="text-3xl sm:text-4xl font-black text-indigo-600 tracking-tight" x-text="counts.total">
+                    0
                 </div>
                 <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
                     Total Dokumen
@@ -211,10 +241,9 @@
             </div>
 
             <!-- Metric 2: Perbup -->
-            <div
-                class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
-                <div class="text-3xl sm:text-4xl font-black text-blue-600 tracking-tight">
-                    {{ stats.perbup_count }}
+            <div class="stat-animate stat-delay-1 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+                <div class="text-3xl sm:text-4xl font-black text-blue-600 tracking-tight" x-text="counts.perbup">
+                    0
                 </div>
                 <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
                     Peraturan Bupati
@@ -223,10 +252,9 @@
             </div>
 
             <!-- Metric 3: SK BKD / Bupati -->
-            <div
-                class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
-                <div class="text-3xl sm:text-4xl font-black text-purple-600 tracking-tight">
-                    {{ stats.sk_count }}
+            <div class="stat-animate stat-delay-2 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+                <div class="text-3xl sm:text-4xl font-black text-purple-600 tracking-tight" x-text="counts.sk">
+                    0
                 </div>
                 <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
                     Keputusan (SK)
@@ -235,10 +263,9 @@
             </div>
 
             <!-- Metric 4: Surat Edaran -->
-            <div
-                class="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition">
-                <div class="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight">
-                    {{ stats.se_count }}
+            <div class="stat-animate stat-delay-3 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+                <div class="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight" x-text="counts.se">
+                    0
                 </div>
                 <div class="text-xs font-bold text-slate-600 mt-1 uppercase tracking-wider">
                     Surat Edaran
@@ -290,7 +317,7 @@
                             hx-target="#documents-container" hx-indicator="#loading-indicator" hx-push-url="true">
 
                         <button type="submit"
-                            class="absolute right-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+                            class="absolute right-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition btn-press flex items-center gap-1.5">
                             <span>Cari</span>
                         </button>
                     </div>
@@ -384,18 +411,27 @@
             </form>
         </div>
 
-        <!-- HTMX Loading Indicator Bar -->
+        <!-- HTMX Loading Indicator — Skeleton Cards -->
         <div id="loading-indicator" class="htmx-indicator mb-6">
-            <div
-                class="flex items-center justify-center gap-3 py-3.5 bg-indigo-50/90 rounded-2xl text-indigo-800 text-xs font-semibold border border-indigo-100">
-                <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                    </path>
-                </svg>
-                <span>Memperbarui katalog dokumen regulasi...</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for _ in "123" %}
+                <div class="skeleton-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="skeleton-badge"></div>
+                        <div class="skeleton-badge" style="width: 3.5rem;"></div>
+                    </div>
+                    <div class="skeleton-line short mb-2"></div>
+                    <div class="skeleton-line tall full mb-1"></div>
+                    <div class="skeleton-line medium mb-5"></div>
+                    <div class="skeleton-line full mb-1"></div>
+                    <div class="skeleton-line full mb-1"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="mt-5 pt-4 border-t border-slate-100 flex gap-2">
+                        <div class="skeleton-line" style="height: 2rem; width: 50%; border-radius: 0.75rem;"></div>
+                        <div class="skeleton-line" style="height: 2rem; width: 50%; border-radius: 0.75rem;"></div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
 

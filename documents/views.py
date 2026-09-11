@@ -104,16 +104,25 @@ def detail_view(request, doc_id):
 def download_view(request, doc_id):
     """
     Handle document download action and increment download counter.
+    Menampilkan pesan ramah jika file tidak tersedia, bukan error mentah.
     """
     document = get_document_by_id(doc_id)
     if not document or document.get('status') == 'dihapus':
-        raise Http404("Dokumen hukum tidak ditemukan.")
+        from django.http import HttpResponseNotFound
+        return HttpResponseNotFound(
+            '<html><body style="font-family:sans-serif;padding:2rem;text-align:center;">'
+            '<h2 style="color:#dc2626;">Dokumen Tidak Ditemukan</h2>'
+            '<p style="color:#64748b;">Dokumen yang Anda cari tidak tersedia atau telah dihapus.</p>'
+            '<a href="/" style="color:#2563eb;">&#8592; Kembali ke Beranda</a>'
+            '</body></html>'
+        )
 
-    # Increment counter
+    file_url = document.get('file_url', '').strip()
+    if not file_url:
+        # File belum diunggah — arahkan kembali ke halaman detail dengan pesan
+        from django.contrib import messages as django_messages
+        return redirect('documents:detail', doc_id=doc_id)
+
+    # Increment counter hanya jika file tersedia
     increment_download_count(doc_id)
-
-    file_url = document.get('file_url')
-    if file_url:
-        return redirect(file_url)
-
-    raise Http404("File dokumen tidak tersedia.")
+    return redirect(file_url)
