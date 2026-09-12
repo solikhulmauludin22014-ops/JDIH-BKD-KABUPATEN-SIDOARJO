@@ -1,12 +1,16 @@
 """
 Document Service Layer for JDIH BKD Sidoarjo.
-Handles interactions with Firestore collection 'documents',
-and seamlessly handles fallback mock data if credentials are not configured.
+Handles interactions with Firestore collection 'documents'.
 
-NOTE: _MOCK_DOCUMENTS is ONLY used as a local in-memory fallback when
-Firebase credentials are not configured (development / preview mode).
-It is NEVER automatically written to Firestore on production.
-To manually seed Firestore for development, run:
+MODE OPERASI:
+- Production (Vercel, kredensial Firebase ada): SELALU query Firestore.
+  Tidak ada fallback ke mock dalam kondisi apapun.
+  Kegagalan Firestore akan menghasilkan exception yang naik ke view.
+- Development lokal (tanpa serviceAccountKey.json): Gunakan _MOCK_DOCUMENTS
+  sebagai dataset in-memory untuk pengembangan dan preview UI.
+
+NOTE: _MOCK_DOCUMENTS TIDAK PERNAH digunakan di production.
+Untuk mengisi data awal Firestore (dev only), jalankan:
     python manage.py seed_bkd_documents
 """
 
@@ -258,55 +262,50 @@ def get_documents(
     page_size=9
 ):
     """
-    Search, filter, and paginate documents from Firestore (or mock fallback).
+    Search, filter, and paginate documents from Firestore (or mock in dev).
+
+    Di production: query Firestore, exception di-raise ke caller.
+    Di dev lokal (mock mode): gunakan _MOCK_DOCUMENTS.
+
     Returns a dict with:
-        items: list[dict]
-        total_items: int
-        total_pages: int
-        current_page: int
-        has_previous: bool
-        has_next: bool
+        items, total_items, total_pages, current_page,
+        has_previous, has_next, previous_page_number, next_page_number, page_range
     """
     db = get_firestore_db()
 
     if db and not is_mock_mode():
-        try:
-            coll_ref = db.collection(COLLECTION_NAME)
-            docs = coll_ref.stream()
-            results = [_format_firestore_doc(doc) for doc in docs]
-            # NOTE: Tidak ada auto-seed di sini.
-            # Koleksi kosong di Firestore adalah kondisi valid — tampilkan halaman kosong.
-            # Untuk mengisi data awal (dev only), gunakan:
-            #   python manage.py seed_bkd_documents
-        except Exception as e:
-            logger.error(f"Firestore query error: {e}. Falling back to mock dataset.")
-            results = list(_MOCK_DOCUMENTS)
+        # Production: query Firestore — biarkan exception naik ke view jika gagal
+        coll_ref = db.collection(COLLECTION_NAME)
+        docs = coll_ref.stream()
+        results = [_format_firestore_doc(doc) for doc in docs]
+        logger.info(f"[get_documents] Firestore: fetched {len(results)} raw docs.")
     else:
+        # Dev lokal: gunakan mock data
+        logger.debug("[get_documents] Mock mode: using _MOCK_DOCUMENTS.")
         results = list(_MOCK_DOCUMENTS)
 
-    # Unified filtering for both Firestore and Mock datasets
-    # Filter deleted
+    # Filter: deleted
     if not include_deleted:
         results = [d for d in results if d.get('status') != 'dihapus']
     elif include_deleted == 'only':
         results = [d for d in results if d.get('status') == 'dihapus']
 
-    # Filter jenis
+    # Filter: jenis
     if jenis:
         results = [d for d in results if str(d.get('jenis_dokumen', '')).lower() == jenis.lower()]
 
-    # Filter tahun
+    # Filter: tahun
     if tahun:
         try:
             results = [d for d in results if int(str(d.get('tahun', 0))) == int(tahun)]
         except ValueError:
             pass
 
-    # Filter kategori
+    # Filter: kategori
     if kategori:
         results = [d for d in results if d.get('kategori') == kategori]
 
-    # Filter status
+    # Filter: status
     if status and status != 'semua':
         results = [d for d in results if str(d.get('status', '')).lower() == status.lower()]
 
@@ -334,18 +333,16 @@ def get_documents(
             reverse=True
         )
 
-    # Pagination calculation
+    # Pagination
     total_items = len(results)
     page_size = max(1, page_size)
     total_pages = max(1, (total_items + page_size - 1) // page_size)
     page = max(1, min(page, total_pages))
-
     start_idx = (page - 1) * page_size
     end_idx = start_idx + page_size
-    paginated_items = results[start_idx:end_idx]
 
     return {
-        'items': paginated_items,
+        'items': results[start_idx:end_idx],
         'total_items': total_items,
         'total_pages': total_pages,
         'current_page': page,
@@ -358,19 +355,17 @@ def get_documents(
 
 
 def get_document_by_id(doc_id):
-    """Retrieve single document by ID."""
+    """Retrieve single document by ID from Firestore (or mock in dev)."""
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc = doc_ref.get()
-            if doc.exists:
-                return _format_firestore_doc(doc)
-            return None
-        except Exception as e:
-            logger.error(f"Error fetching document {doc_id} from Firestore: {e}")
+        # Production: exception naik ke caller, tidak ada fallback mock
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            return _format_firestore_doc(doc)
+        return None
 
-    # Fallback to mock
+    # Dev lokal: cari di mock
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
             return d
@@ -379,7 +374,8 @@ def get_document_by_id(doc_id):
 
 def create_document(data, user_uid="admin_bkd"):
     """
-    Create a new document in Firestore or mock store.
+    Create a new document in Firestore (or mock in dev).
+    Di production: exception naik ke caller jika Firestore gagal.
     """
     now = datetime.now()
     doc_id = str(uuid.uuid4())
@@ -397,7 +393,7 @@ def create_document(data, user_uid="admin_bkd"):
         'file_url': data.get('file_url', ''),
         'file_name': data.get('file_name', ''),
         'ukuran_file': int(data.get('ukuran_file', 0)),
-        'appwrite_file_id': data.get('appwrite_file_id', ''),  # ID file di Appwrite Storage
+        'appwrite_file_id': data.get('appwrite_file_id', ''),
         'view_count': 0,
         'download_count': 0,
         'created_at': now,
@@ -407,39 +403,37 @@ def create_document(data, user_uid="admin_bkd"):
 
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc_ref.set(doc_data)
-            return doc_data
-        except Exception as e:
-            logger.error(f"Error creating document in Firestore: {e}")
+        # Production: tulis ke Firestore, exception naik ke caller
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc_ref.set(doc_data)
+        logger.info(f"[create_document] Firestore: created doc_id={doc_id}")
+        return doc_data
 
-    # Save to mock list
+    # Dev lokal: simpan ke mock in-memory
+    logger.debug(f"[create_document] Mock mode: inserting doc_id={doc_id}")
     _MOCK_DOCUMENTS.insert(0, doc_data)
     return doc_data
 
 
 def update_document(doc_id, data):
     """
-    Update document metadata and optional file in Firestore or mock store.
+    Update document metadata in Firestore (or mock in dev).
+    Di production: exception naik ke caller jika Firestore gagal.
     """
     now = datetime.now()
     db = get_firestore_db()
 
-    clean_data = {}
-    for key, val in data.items():
-        if key not in ['id', 'created_at', 'created_by']:
-            clean_data[key] = val
+    clean_data = {k: v for k, v in data.items() if k not in ['id', 'created_at', 'created_by']}
     clean_data['updated_at'] = now
 
     if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc_ref.update(clean_data)
-            return get_document_by_id(doc_id)
-        except Exception as e:
-            logger.error(f"Error updating document {doc_id} in Firestore: {e}")
+        # Production: update Firestore, exception naik ke caller
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc_ref.update(clean_data)
+        logger.info(f"[update_document] Firestore: updated doc_id={doc_id}")
+        return get_document_by_id(doc_id)
 
+    # Dev lokal: update mock in-memory
     for idx, d in enumerate(_MOCK_DOCUMENTS):
         if d['id'] == doc_id:
             _MOCK_DOCUMENTS[idx].update(clean_data)
@@ -449,21 +443,21 @@ def update_document(doc_id, data):
 
 def delete_document(doc_id, soft=True):
     """
-    Delete document. If soft=True, sets status to 'dihapus'.
-    If soft=False, permanently deletes from collection.
+    Delete document. If soft=True, sets status='dihapus'. If soft=False, permanent delete.
+    Di production: exception naik ke caller jika Firestore gagal.
     """
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            if soft:
-                doc_ref.update({'status': 'dihapus', 'updated_at': datetime.now()})
-            else:
-                doc_ref.delete()
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting document {doc_id} from Firestore: {e}")
+        # Production: mutasi Firestore, exception naik ke caller
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        if soft:
+            doc_ref.update({'status': 'dihapus', 'updated_at': datetime.now()})
+        else:
+            doc_ref.delete()
+        logger.info(f"[delete_document] Firestore: doc_id={doc_id} soft={soft}")
+        return True
 
+    # Dev lokal: mutasi mock in-memory
     for idx, d in enumerate(_MOCK_DOCUMENTS):
         if d['id'] == doc_id:
             if soft:
@@ -476,16 +470,18 @@ def delete_document(doc_id, soft=True):
 
 
 def restore_document(doc_id):
-    """Restore a soft-deleted document to 'berlaku'."""
+    """Restore a soft-deleted document to 'berlaku'.
+    Di production: exception naik ke caller jika Firestore gagal.
+    """
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc_ref.update({'status': 'berlaku', 'updated_at': datetime.now()})
-            return True
-        except Exception as e:
-            logger.error(f"Error restoring document {doc_id}: {e}")
+        # Production: update Firestore, exception naik ke caller
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc_ref.update({'status': 'berlaku', 'updated_at': datetime.now()})
+        logger.info(f"[restore_document] Firestore: restored doc_id={doc_id}")
+        return True
 
+    # Dev lokal: update mock in-memory
     for idx, d in enumerate(_MOCK_DOCUMENTS):
         if d['id'] == doc_id:
             _MOCK_DOCUMENTS[idx]['status'] = 'berlaku'
@@ -496,29 +492,28 @@ def restore_document(doc_id):
 
 def bulk_delete_documents(doc_ids, soft=True):
     """
-    Bulk delete multiple documents.
-    Uses WriteBatch for Firestore (atomic, up to 500 ops per batch).
+    Bulk delete multiple documents via WriteBatch (atomic, max 500 ops).
+    Di production: exception naik ke caller jika Firestore gagal.
     """
     if not doc_ids:
         return 0
 
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            batch = db.batch()
-            now = datetime.now()
-            for doc_id in doc_ids:
-                doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-                if soft:
-                    batch.update(doc_ref, {'status': 'dihapus', 'updated_at': now})
-                else:
-                    batch.delete(doc_ref)
-            batch.commit()
-            return len(doc_ids)
-        except Exception as e:
-            logger.error(f"Error in bulk delete (soft={soft}) from Firestore: {e}")
-            return 0
+        # Production: WriteBatch ke Firestore, exception naik ke caller
+        batch = db.batch()
+        now = datetime.now()
+        for doc_id in doc_ids:
+            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+            if soft:
+                batch.update(doc_ref, {'status': 'dihapus', 'updated_at': now})
+            else:
+                batch.delete(doc_ref)
+        batch.commit()
+        logger.info(f"[bulk_delete_documents] Firestore: {len(doc_ids)} docs, soft={soft}")
+        return len(doc_ids)
 
+    # Dev lokal: mutasi mock in-memory
     count = 0
     now = datetime.now()
     for doc_id in doc_ids:
@@ -536,26 +531,25 @@ def bulk_delete_documents(doc_ids, soft=True):
 
 def bulk_restore_documents(doc_ids):
     """
-    Bulk restore multiple documents.
-    Uses WriteBatch for Firestore.
+    Bulk restore multiple documents via WriteBatch.
+    Di production: exception naik ke caller jika Firestore gagal.
     """
     if not doc_ids:
         return 0
 
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            batch = db.batch()
-            now = datetime.now()
-            for doc_id in doc_ids:
-                doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-                batch.update(doc_ref, {'status': 'berlaku', 'updated_at': now})
-            batch.commit()
-            return len(doc_ids)
-        except Exception as e:
-            logger.error(f"Error in bulk restore from Firestore: {e}")
-            return 0
+        # Production: WriteBatch ke Firestore, exception naik ke caller
+        batch = db.batch()
+        now = datetime.now()
+        for doc_id in doc_ids:
+            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+            batch.update(doc_ref, {'status': 'berlaku', 'updated_at': now})
+        batch.commit()
+        logger.info(f"[bulk_restore_documents] Firestore: restored {len(doc_ids)} docs")
+        return len(doc_ids)
 
+    # Dev lokal: update mock in-memory
     count = 0
     now = datetime.now()
     for doc_id in doc_ids:
@@ -569,16 +563,18 @@ def bulk_restore_documents(doc_ids):
 
 
 def increment_view_count(doc_id):
-    """Increment document view count."""
+    """Increment document view count. Non-critical — silent skip on failure."""
     db = get_firestore_db()
     if db and not is_mock_mode():
         try:
             doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
             doc_ref.update({'view_count': firestore.Increment(1)})
-            return
         except Exception as e:
-            logger.warning(f"Error incrementing view_count: {e}")
+            # Counter bukan data kritis — log warning dan lanjutkan
+            logger.warning(f"[increment_view_count] Skipped for {doc_id}: {e}")
+        return  # Jangan mutasi mock di production
 
+    # Dev lokal: update mock in-memory
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
             d['view_count'] = int(d.get('view_count') or 0) + 1  # type: ignore[arg-type]
@@ -586,16 +582,18 @@ def increment_view_count(doc_id):
 
 
 def increment_download_count(doc_id):
-    """Increment document download count."""
+    """Increment document download count. Non-critical — silent skip on failure."""
     db = get_firestore_db()
     if db and not is_mock_mode():
         try:
             doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
             doc_ref.update({'download_count': firestore.Increment(1)})
-            return
         except Exception as e:
-            logger.warning(f"Error incrementing download_count: {e}")
+            # Counter bukan data kritis — log warning dan lanjutkan
+            logger.warning(f"[increment_download_count] Skipped for {doc_id}: {e}")
+        return  # Jangan mutasi mock di production
 
+    # Dev lokal: update mock in-memory
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
             d['download_count'] = int(d.get('download_count') or 0) + 1  # type: ignore[arg-type]
@@ -604,22 +602,20 @@ def increment_download_count(doc_id):
 
 def _get_raw_dataset():
     """
-    Helper to return current working dataset (Firestore or Mock).
-    - Jika Firestore terhubung: selalu return data Firestore (meskipun kosong),
-      TIDAK fallback ke mock hanya karena koleksi kosong.
-    - Fallback ke mock hanya jika Firestore tidak terhubung (credentials tidak ada)
-      atau terjadi exception saat query.
+    Helper untuk statistik dan get_available_years().
+    - Production (Firestore connected): query Firestore, return list (bisa kosong [])
+      Exception naik ke caller — TIDAK fallback ke mock.
+    - Dev lokal (mock mode): return _MOCK_DOCUMENTS.
     """
     db = get_firestore_db()
     if db and not is_mock_mode():
-        try:
-            coll_ref = db.collection(COLLECTION_NAME)
-            items = [_format_firestore_doc(doc) for doc in coll_ref.stream()]
-            logger.debug(f"[_get_raw_dataset] Firestore returned {len(items)} docs.")
-            return items  # Return Firestore data as-is, even if empty list
-        except Exception as e:
-            logger.warning(f"[_get_raw_dataset] Error fetching from Firestore: {e}. Falling back to mock.")
-    logger.debug("[_get_raw_dataset] Using mock dataset.")
+        # Production: exception naik ke caller
+        items = [_format_firestore_doc(doc) for doc in db.collection(COLLECTION_NAME).stream()]
+        logger.info(f"[_get_raw_dataset] Firestore: {len(items)} docs fetched.")
+        return items
+
+    # Dev lokal
+    logger.debug("[_get_raw_dataset] Mock mode: using _MOCK_DOCUMENTS.")
     return list(_MOCK_DOCUMENTS)
 
 

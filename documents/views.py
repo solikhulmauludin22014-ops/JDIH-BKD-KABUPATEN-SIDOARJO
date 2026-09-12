@@ -3,8 +3,9 @@ Views for Public JDIH BKD Sidoarjo.
 Supports instant search and filter via HTMX or full page render.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, Http404
+import logging
+from django.shortcuts import render, redirect
+from django.http import Http404, HttpResponseNotFound
 from .services import (
     get_documents,
     get_document_by_id,
@@ -17,11 +18,33 @@ from .services import (
     STATUS_CHOICES,
 )
 
+logger = logging.getLogger(__name__)
+
+
+def _empty_stats():
+    """Return zeroed stats dict — digunakan saat Firestore error."""
+    return {
+        'total_documents': 0, 'total_views': 0, 'total_downloads': 0,
+        'perbup_count': 0, 'sk_count': 0, 'perda_count': 0,
+        'se_count': 0, 'instruksi_count': 0, 'permen_count': 0,
+        'berlaku_count': 0, 'diubah_count': 0, 'dicabut_count': 0,
+    }
+
+
+def _empty_pagination():
+    """Return empty pagination dict — digunakan saat Firestore error."""
+    return {
+        'items': [], 'total_items': 0, 'total_pages': 1, 'current_page': 1,
+        'has_previous': False, 'has_next': False,
+        'previous_page_number': 0, 'next_page_number': 2, 'page_range': [1],
+    }
+
 
 def index_view(request):
     """
     Public Home Page.
     Handles both full page loads and HTMX partial requests.
+    Jika Firestore gagal, tampilkan banner error jujur — BUKAN data palsu.
     """
     search_query = request.GET.get('q', '').strip()
     jenis = request.GET.get('jenis', '').strip()
@@ -36,17 +59,28 @@ def index_view(request):
     except (ValueError, TypeError):
         page = 1
 
-    docs_data = get_documents(
-        search_query=search_query,
-        jenis=jenis,
-        tahun=tahun,
-        kategori=kategori,
-        status=status,
-        sort_by=sort_by,
-        page=page,
-        page_size=9,
-        include_deleted=False,
-    )
+    firestore_error = False
+    docs_data = _empty_pagination()
+    stats = _empty_stats()
+    available_years: list = [2026]
+
+    try:
+        docs_data = get_documents(
+            search_query=search_query,
+            jenis=jenis,
+            tahun=tahun,
+            kategori=kategori,
+            status=status,
+            sort_by=sort_by,
+            page=page,
+            page_size=9,
+            include_deleted=False,
+        )
+        stats = get_statistics()
+        available_years = get_available_years()
+    except Exception as e:
+        logger.exception(f"[index_view] Gagal fetch data dari Firestore: {e}")
+        firestore_error = True
 
     context = {
         'documents': docs_data['items'],
@@ -60,8 +94,9 @@ def index_view(request):
         'document_types': DOCUMENT_TYPES,
         'categories': CATEGORIES,
         'statuses': STATUS_CHOICES,
-        'available_years': get_available_years(),
-        'stats': get_statistics(),
+        'available_years': available_years,
+        'stats': stats,
+        'firestore_error': firestore_error,
     }
 
     # If requested via HTMX, return only the document list and pagination partial
@@ -75,23 +110,30 @@ def detail_view(request, doc_id):
     """
     Detailed document view with embedded PDF viewer, metadata, and view counter.
     """
-    document = get_document_by_id(doc_id)
+    try:
+        document = get_document_by_id(doc_id)
+    except Exception as e:
+        logger.exception(f"[detail_view] Gagal fetch dokumen {doc_id} dari Firestore: {e}")
+        raise Http404("Dokumen hukum tidak ditemukan.")
+
     if not document or document.get('status') == 'dihapus':
         raise Http404("Dokumen hukum tidak ditemukan.")
 
-    # Increment view counter
+    # Increment view counter (non-critical)
     increment_view_count(doc_id)
-    # Refresh local count
     document['view_count'] = document.get('view_count', 0) + 1
 
-    # Fetch related documents from same category or jenis
-    related = get_documents(
-        kategori=document.get('kategori'),
-        page=1,
-        page_size=4,
-        include_deleted=False,
-    )
-    related_items = [d for d in related['items'] if d['id'] != doc_id][:3]
+    # Fetch related documents from same category
+    try:
+        related = get_documents(
+            kategori=document.get('kategori'),
+            page=1,
+            page_size=4,
+            include_deleted=False,
+        )
+        related_items = [d for d in related['items'] if d['id'] != doc_id][:3]
+    except Exception:
+        related_items = []
 
     context = {
         'document': document,
@@ -106,9 +148,13 @@ def download_view(request, doc_id):
     Handle document download action and increment download counter.
     Menampilkan pesan ramah jika file tidak tersedia, bukan error mentah.
     """
-    document = get_document_by_id(doc_id)
+    try:
+        document = get_document_by_id(doc_id)
+    except Exception as e:
+        logger.exception(f"[download_view] Gagal fetch dokumen {doc_id}: {e}")
+        document = None
+
     if not document or document.get('status') == 'dihapus':
-        from django.http import HttpResponseNotFound
         return HttpResponseNotFound(
             '<html><body style="font-family:sans-serif;padding:2rem;text-align:center;">'
             '<h2 style="color:#dc2626;">Dokumen Tidak Ditemukan</h2>'
@@ -119,8 +165,6 @@ def download_view(request, doc_id):
 
     file_url = document.get('file_url', '').strip()
     if not file_url:
-        # File belum diunggah — arahkan kembali ke halaman detail dengan pesan
-        from django.contrib import messages as django_messages
         return redirect('documents:detail', doc_id=doc_id)
 
     # Increment counter hanya jika file tersedia
