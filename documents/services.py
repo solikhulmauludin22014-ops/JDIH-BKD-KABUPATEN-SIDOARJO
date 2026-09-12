@@ -322,7 +322,7 @@ def get_documents(
 
     # Sorting
     if sort_by == 'populer':
-        results.sort(key=lambda x: x.get('view_count', 0) + x.get('download_count', 0) * 2, reverse=True)
+        results.sort(key=lambda x: int(x.get('view_count') or 0) + int(x.get('download_count') or 0) * 2, reverse=True)
     elif sort_by == 'tahun_asc':
         results.sort(key=lambda x: (x.get('tahun', 0), x.get('tanggal_terbit') or datetime.min))
     elif sort_by == 'tahun_desc':

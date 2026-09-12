@@ -62,8 +62,8 @@ class Command(BaseCommand):
                 # Tampilkan sample 3 dokumen pertama
                 self.stdout.write(self.style.MIGRATE_LABEL("  Sample dokumen (maks 3):"))
                 for i, doc in enumerate(docs[:3]):
-                    data = doc.to_dict()
-                    judul = data.get('judul', '(tanpa judul)')[:60]
+                    data = doc.to_dict() or {}
+                    judul = str(data.get('judul', '(tanpa judul)'))[:60]
                     nomor = data.get('nomor_dokumen', '-')
                     jenis = data.get('jenis_dokumen', '-')
                     status = data.get('status', '-')
@@ -75,15 +75,15 @@ class Command(BaseCommand):
                     )
 
                 # Ringkasan statistik
-                all_data = [doc.to_dict() for doc in docs]
+                all_data = [doc.to_dict() or {} for doc in docs]
                 active = [d for d in all_data if d.get('status') != 'dihapus']
                 self.stdout.write(self.style.MIGRATE_LABEL("  Ringkasan:"))
                 self.stdout.write(f"  • Total raw (termasuk dihapus) : {total}")
                 self.stdout.write(f"  • Aktif (status != dihapus)    : {len(active)}")
 
-                jenis_counts = {}
+                jenis_counts: dict[str, int] = {}
                 for d in active:
-                    j = d.get('jenis_dokumen', 'unknown')
+                    j = str(d.get('jenis_dokumen') or 'unknown')
                     jenis_counts[j] = jenis_counts.get(j, 0) + 1
                 self.stdout.write("  • Per jenis dokumen:")
                 for j, c in sorted(jenis_counts.items(), key=lambda x: -x[1]):
