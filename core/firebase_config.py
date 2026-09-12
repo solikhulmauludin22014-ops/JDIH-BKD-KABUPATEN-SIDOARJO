@@ -23,6 +23,11 @@ def initialize_firebase():
     """
     Initialize Firebase Admin SDK or enable mock provider fallback.
     Firebase Storage TIDAK diinisialisasi — gunakan Appwrite Storage.
+
+    PENTING: Fungsi ini TIDAK melakukan tes konektivitas ke Firestore saat init.
+    Kehadiran credentials yang valid → production mode (_is_mock=False).
+    Error Firestore query akan naik ke caller (services.py) dan di-handle di view.
+    Ini mencegah lock permanen ke mock mode akibat timeout atau database belum exist.
     """
     global _firebase_app, _firestore_db, _storage_bucket, _is_mock
     
@@ -31,15 +36,14 @@ def initialize_firebase():
 
     try:
         import firebase_admin
-        from firebase_admin import credentials, firestore, storage
+        from firebase_admin import credentials, firestore
 
-        # Check if already initialized
+        # Check if already initialized (multi-worker / warm start)
         if firebase_admin._apps:
             _firebase_app = firebase_admin.get_app()
             _firestore_db = firestore.client()
-            # Firebase Storage tidak digunakan — Appwrite Storage menggantikan
-            _storage_bucket = None
             _is_mock = False
+            logger.info("[FIREBASE CONFIG] Reusing existing Firebase Admin app (warm start).")
             return _firestore_db, _storage_bucket, _is_mock
 
         cred = None
@@ -49,10 +53,13 @@ def initialize_firebase():
         if service_account_json:
             try:
                 raw_json = service_account_json.strip()
-                if (raw_json.startswith("'") and raw_json.endswith("'")) or (raw_json.startswith('"') and raw_json.endswith('"') and not raw_json.startswith('{"')):
+                # Strip surrounding quotes if accidentally wrapped
+                if (raw_json.startswith("'") and raw_json.endswith("'")) or \
+                   (raw_json.startswith('"') and raw_json.endswith('"') and not raw_json.startswith('{"')):
                     raw_json = raw_json[1:-1].strip()
                 cert_dict = json.loads(raw_json)
-                if isinstance(cert_dict, dict) and 'private_key' in cert_dict and isinstance(cert_dict['private_key'], str):
+                if isinstance(cert_dict, dict) and 'private_key' in cert_dict \
+                        and isinstance(cert_dict['private_key'], str):
                     if '\\n' in cert_dict['private_key']:
                         cert_dict['private_key'] = cert_dict['private_key'].replace('\\n', '\n')
                 cred = credentials.Certificate(cert_dict)
@@ -77,56 +84,44 @@ def initialize_firebase():
             if valid_path:
                 try:
                     cred = credentials.Certificate(valid_path)
-                    print(f"[FIREBASE CONFIG] Loaded Firebase credentials from file: {valid_path}")
+                    print(f"[FIREBASE CONFIG] Loaded credentials from file: {valid_path}")
                     logger.info(f"Loaded Firebase credentials from file: {valid_path}")
                 except Exception as e:
                     print(f"[FIREBASE CONFIG ERROR] Failed to load credentials from {valid_path}: {e}")
                     logger.warning(f"Error loading credentials from {valid_path}: {e}")
 
-        # Initialize if credentials found
+        # Initialize Firebase Admin SDK jika credentials ditemukan
         if cred:
-            options = {}
-            # Firebase Storage tidak diinisialisasi — diganti Appwrite Storage
-            # Tidak perlu set storageBucket di options
-
-            _firebase_app = firebase_admin.initialize_app(cred, options)
+            _firebase_app = firebase_admin.initialize_app(cred, {})
             print(f"[FIREBASE CONFIG] Firebase Admin App initialized successfully (name: {_firebase_app.name})")
-            try:
-                _firestore_db = firestore.client()
-                # Test connectivity to Firestore
-                _ = list(_firestore_db.collection('documents').limit(1).stream())
-            except Exception as fe:
-                msg_str = str(fe)
-                if "SERVICE_DISABLED" in msg_str or "403" in msg_str:
-                    logger.info("Info Firebase: Cloud Firestore belum diaktifkan di Firebase Console. Mengaktifkan mode data lokal siap-pakai.")
-                else:
-                    logger.info(f"Info Firebase: {msg_str[:120]}. Mengaktifkan mode data lokal siap-pakai.")
-                _firestore_db = None
+            logger.info(f"Firebase Admin App initialized (name: {_firebase_app.name}).")
 
-            # Firebase Storage tidak diinisialisasi — Appwrite Storage digunakan
-            # bucket_name = getattr(settings, 'FIREBASE_STORAGE_BUCKET', None)
-            # if bucket_name:
-            #     try:
-            #         _storage_bucket = storage.bucket(bucket_name)
-            #     except Exception as se:
-            #         logger.warning(f"Storage bucket note: {se}")
+            # Buat Firestore client — TANPA tes konektivitas.
+            # Error query akan naik ke caller (services.py) dan di-handle view.
+            # Ini mencegah lock ke mock mode akibat cold-start timeout atau
+            # database yang baru saja dibuat.
+            _firestore_db = firestore.client()
+            _is_mock = False
 
-            if _firestore_db is not None:
-                _is_mock = False
-                logger.info("Firebase Admin SDK & Firestore berhasil diinisialisasi. [Appwrite Storage aktif sebagai pengganti Firebase Storage]")
-                return _firestore_db, None, _is_mock
-            else:
-                _is_mock = True
-                return None, None, _is_mock
+            logger.info(
+                "[FIREBASE CONFIG] Firestore client siap (production mode). "
+                "[Appwrite Storage aktif sebagai pengganti Firebase Storage]"
+            )
+            return _firestore_db, None, _is_mock
+
         else:
             print("[FIREBASE CONFIG WARNING] No Firebase credentials found in environment or local file.")
+            logger.warning("[FIREBASE CONFIG] No credentials found.")
 
     except Exception as e:
         print(f"[FIREBASE CONFIG ERROR] Failed to initialize Firebase Admin SDK: {e}")
         logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
 
-    # Fallback to Mock mode for preview and development
-    logger.warning("Firebase credentials not active. Running in Mock/Preview mode with sample BKD data.")
+    # Fallback ke Mock mode — hanya jika credentials memang tidak ada/tidak valid
+    logger.warning(
+        "[FIREBASE CONFIG] Firebase credentials tidak aktif. "
+        "Running in Mock/Preview mode dengan sample BKD data."
+    )
     _is_mock = True
     return None, None, _is_mock
 
@@ -144,7 +139,7 @@ def get_storage_bucket():
 
 
 def is_mock_mode():
-    """Return True if running in fallback mock mode."""
+    """Return True if running in fallback mock mode (no valid credentials)."""
     initialize_firebase()
     return _is_mock
 
@@ -194,7 +189,7 @@ def verify_firebase_id_token(id_token):
         decoded_token = auth.verify_id_token(id_token, app=app, check_revoked=False)
         user_uid = decoded_token.get('uid')
         user_email = decoded_token.get('email', 'unknown')
-        print(f"[FIREBASE AUTH SUCCESS] Token verified successfully for UID={user_uid}, Email={user_email}")
+        print(f"[FIREBASE AUTH SUCCESS] Token verified for UID={user_uid}, Email={user_email}")
         return decoded_token, None
     except Exception as e:
         err_type = type(e).__name__
