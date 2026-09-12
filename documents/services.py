@@ -318,7 +318,7 @@ def get_documents(
             if sq in str(d.get('judul', '')).lower()
             or sq in str(d.get('nomor_dokumen', '')).lower()
             or sq in str(d.get('deskripsi', '')).lower()
-            or any(sq in tag.lower() for tag in (d.get('tags') or []))
+            or any(sq in t.lower() for t in (d.get('tags') if isinstance(d.get('tags'), list) else []) if isinstance(t, str))
         ]
 
     # Sorting
@@ -581,7 +581,7 @@ def increment_view_count(doc_id):
 
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
-            d['view_count'] = int(d.get('view_count') or 0) + 1
+            d['view_count'] = int(d.get('view_count') or 0) + 1  # type: ignore[arg-type]
             break
 
 
@@ -598,40 +598,68 @@ def increment_download_count(doc_id):
 
     for d in _MOCK_DOCUMENTS:
         if d['id'] == doc_id:
-            d['download_count'] = int(d.get('download_count') or 0) + 1
+            d['download_count'] = int(d.get('download_count') or 0) + 1  # type: ignore[arg-type]
             break
 
 
 def _get_raw_dataset():
-    """Helper to return current working dataset (Firestore or Mock)."""
+    """
+    Helper to return current working dataset (Firestore or Mock).
+    - Jika Firestore terhubung: selalu return data Firestore (meskipun kosong),
+      TIDAK fallback ke mock hanya karena koleksi kosong.
+    - Fallback ke mock hanya jika Firestore tidak terhubung (credentials tidak ada)
+      atau terjadi exception saat query.
+    """
     db = get_firestore_db()
     if db and not is_mock_mode():
         try:
             coll_ref = db.collection(COLLECTION_NAME)
-            docs = coll_ref.stream()
-            items = [_format_firestore_doc(doc) for doc in docs]
-            if items:
-                return items
+            items = [_format_firestore_doc(doc) for doc in coll_ref.stream()]
+            logger.debug(f"[_get_raw_dataset] Firestore returned {len(items)} docs.")
+            return items  # Return Firestore data as-is, even if empty list
         except Exception as e:
-            logger.warning(f"Error fetching dataset for stats: {e}")
+            logger.warning(f"[_get_raw_dataset] Error fetching from Firestore: {e}. Falling back to mock.")
+    logger.debug("[_get_raw_dataset] Using mock dataset.")
     return list(_MOCK_DOCUMENTS)
 
 
 def get_statistics():
-    """Returns general metrics for public hero and admin dashboard."""
-    docs = [d for d in _get_raw_dataset() if d.get('status') != 'dihapus']
+    """
+    Returns general metrics for public hero and admin dashboard.
+
+    Menghitung langsung dari Firestore (jika terhubung) atau mock data.
+    Dokumen dengan status 'dihapus' (soft-deleted) TIDAK ikut terhitung.
+    Field jenis_dokumen di-compare lowercase agar tidak case-sensitive.
+    """
+    all_docs = _get_raw_dataset()
+
+    # Exclude soft-deleted documents (status == 'dihapus' — sesuai delete_document())
+    docs = [d for d in all_docs if str(d.get('status', '')).lower() != 'dihapus']
+
     total_docs = len(docs)
     total_views = sum(d.get('view_count', 0) for d in docs)
     total_downloads = sum(d.get('download_count', 0) for d in docs)
 
+    # Hitung per jenis dokumen — lowercase comparison agar robust
     perbup_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'perbup')
     sk_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'sk')
     perda_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'perda')
     se_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'se')
+    instruksi_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'instruksi')
+    permen_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'permen')
 
+    # Hitung per status aktif
     berlaku_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'berlaku')
     diubah_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'diubah')
     dicabut_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'dicabut')
+
+    # Log untuk audit di production (terlihat di Vercel Function Logs)
+    source = "Firestore" if (not is_mock_mode() and get_firestore_db()) else "Mock"
+    logger.info(
+        f"[get_statistics] source={source} total_raw={len(all_docs)} "
+        f"total_aktif={total_docs} perbup={perbup_count} sk={sk_count} "
+        f"se={se_count} perda={perda_count}"
+    )
 
     return {
         'total_documents': total_docs,
@@ -641,6 +669,8 @@ def get_statistics():
         'sk_count': sk_count,
         'perda_count': perda_count,
         'se_count': se_count,
+        'instruksi_count': instruksi_count,
+        'permen_count': permen_count,
         'berlaku_count': berlaku_count,
         'diubah_count': diubah_count,
         'dicabut_count': dicabut_count,
