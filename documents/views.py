@@ -64,6 +64,7 @@ def index_view(request):
     stats = _empty_stats()
     available_years: list = [2026]
 
+    # ── 1. Fetch daftar dokumen ──────────────────────────────────────────────
     try:
         docs_data = get_documents(
             search_query=search_query,
@@ -76,11 +77,33 @@ def index_view(request):
             page_size=9,
             include_deleted=False,
         )
+        logger.info(
+            f"[index_view] get_documents OK: "
+            f"total_items={docs_data.get('total_items')} page={page}"
+        )
+    except Exception as e:
+        logger.exception(f"[index_view] get_documents GAGAL: {type(e).__name__}: {e}")
+        firestore_error = True
+
+    # ── 2. Fetch statistik (independen — failure tidak memengaruhi daftar) ───
+    try:
         stats = get_statistics()
+        logger.info(
+            f"[index_view] get_statistics OK: "
+            f"total_documents={stats.get('total_documents')}"
+        )
+    except Exception as e:
+        logger.exception(
+            f"[index_view] get_statistics GAGAL: {type(e).__name__}: {e} "
+            f"— stats akan menampilkan 0, daftar dokumen TIDAK terpengaruh."
+        )
+        # Jangan set firestore_error=True di sini — daftar dokumen bisa jadi masih benar
+
+    # ── 3. Fetch tahun tersedia (non-critical) ───────────────────────────────
+    try:
         available_years = get_available_years()
     except Exception as e:
-        logger.exception(f"[index_view] Gagal fetch data dari Firestore: {e}")
-        firestore_error = True
+        logger.warning(f"[index_view] get_available_years GAGAL: {type(e).__name__}: {e}")
 
     context = {
         'documents': docs_data['items'],

@@ -609,6 +609,11 @@ def _get_raw_dataset():
     """
     db = get_firestore_db()
     if db and not is_mock_mode():
+        # Log identitas koneksi: pastikan memakai klien Firestore yang sama
+        logger.info(
+            f"[_get_raw_dataset] Firestore client id={id(db)} "
+            f"(get_documents memakai get_firestore_db() yang sama)"
+        )
         # Production: exception naik ke caller
         items = [_format_firestore_doc(doc) for doc in db.collection(COLLECTION_NAME).stream()]
         logger.info(f"[_get_raw_dataset] Firestore: {len(items)} docs fetched.")
@@ -629,8 +634,23 @@ def get_statistics():
     """
     all_docs = _get_raw_dataset()
 
+    # ── Logging diagnostik: tampilkan data mentah SEBELUM filter ────────────────
+    source = "Firestore" if (not is_mock_mode() and get_firestore_db()) else "Mock"
+    sample_jenis = [d.get('jenis_dokumen') for d in all_docs[:5]]
+    sample_status = [d.get('status') for d in all_docs[:5]]
+    logger.info(
+        f"[get_statistics] source={source} "
+        f"total_raw={len(all_docs)} "
+        f"sample_jenis={sample_jenis} "
+        f"sample_status={sample_status}"
+    )
+
     # Exclude soft-deleted documents (status == 'dihapus' — sesuai delete_document())
     docs = [d for d in all_docs if str(d.get('status', '')).lower() != 'dihapus']
+    logger.info(
+        f"[get_statistics] setelah filter dihapus: total_aktif={len(docs)} "
+        f"(dikecualikan={len(all_docs) - len(docs)} dokumen dengan status='dihapus')"
+    )
 
     total_docs = len(docs)
     total_views = sum(d.get('view_count', 0) for d in docs)
@@ -649,12 +669,12 @@ def get_statistics():
     diubah_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'diubah')
     dicabut_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'dicabut')
 
-    # Log untuk audit di production (terlihat di Vercel Function Logs)
-    source = "Firestore" if (not is_mock_mode() and get_firestore_db()) else "Mock"
+    # Log ringkasan hasil hitung
     logger.info(
-        f"[get_statistics] source={source} total_raw={len(all_docs)} "
-        f"total_aktif={total_docs} perbup={perbup_count} sk={sk_count} "
-        f"se={se_count} perda={perda_count}"
+        f"[get_statistics] HASIL: total_docs={total_docs} "
+        f"perbup={perbup_count} sk={sk_count} se={se_count} "
+        f"perda={perda_count} instruksi={instruksi_count} permen={permen_count} | "
+        f"berlaku={berlaku_count} diubah={diubah_count} dicabut={dicabut_count}"
     )
 
     return {
