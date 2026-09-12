@@ -238,6 +238,23 @@ _MOCK_DOCUMENTS = [
 ]
 
 
+def _safe_count(val: object) -> int:
+    """
+    Konversi aman nilai field Firestore ke int untuk sorting/counting.
+    Menangani tipe dinamis dari dict Firestore: None, int, float, str, datetime, dll.
+    """
+    if isinstance(val, bool):
+        return 0  # bool adalah subclass int, tapi 0/1 tidak bermakna di sini
+    if isinstance(val, (int, float)):
+        return int(val)
+    if isinstance(val, str):
+        try:
+            return int(val)
+        except ValueError:
+            return 0
+    return 0
+
+
 def _format_firestore_doc(doc_snapshot):
     """Formats Firestore document snapshot into standardized dictionary."""
     data = doc_snapshot.to_dict()
@@ -322,7 +339,7 @@ def get_documents(
 
     # Sorting
     if sort_by == 'populer':
-        results.sort(key=lambda x: int(x.get('view_count') or 0) + int(x.get('download_count') or 0) * 2, reverse=True)
+        results.sort(key=lambda x: _safe_count(x.get('view_count')) + _safe_count(x.get('download_count')) * 2, reverse=True)
     elif sort_by == 'tahun_asc':
         results.sort(key=lambda x: (x.get('tahun', 0), x.get('tanggal_terbit') or datetime.min))
     elif sort_by == 'tahun_desc':
