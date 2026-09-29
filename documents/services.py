@@ -38,11 +38,11 @@ DOCUMENT_TYPES = [
 # Standard Categories for BKD / Kepegawaian
 CATEGORIES = [
     'Manajemen Kinerja & SKP',
-    'Pemberhentian Kepegawaian',
+    'Pemberhentian & Pensiun',
+    'Kepegawaian',
     'Kenaikan Pangkat & Gaji Berkala',
     'Mutasi, Promosi & Jabatan Fungsional',
     'Kesejahteraan & Cuti',
-    'Pensiun',
     'Disiplin Pegawai & Kode Etik',
     'Pengembangan Kompetensi & Diklat',
     'Tata Kelola Kepegawaian Daerah',
