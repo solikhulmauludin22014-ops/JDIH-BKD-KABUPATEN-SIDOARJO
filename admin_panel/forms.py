@@ -60,7 +60,7 @@ class DocumentForm(forms.Form):
 
     tanggal_terbit = forms.DateField(
         label="Tanggal Terbit / Penetapan",
-        required=True,
+        required=False,
         widget=forms.DateInput(attrs={
             'type': 'date',
             'class': 'w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-600 focus:ring-blue-600 text-sm py-2.5 px-3.5'
@@ -83,16 +83,6 @@ class DocumentForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-600 focus:ring-blue-600 text-sm py-2.5 px-3.5',
             'placeholder': 'kinerja, pns, skp, evaluasi, bkd (pisahkan dengan koma)'
-        })
-    )
-
-    deskripsi = forms.CharField(
-        label="Ringkasan / Abstraksi Dokumen",
-        required=True,
-        widget=forms.Textarea(attrs={
-            'rows': 4,
-            'class': 'w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-600 focus:ring-blue-600 text-sm py-2.5 px-3.5',
-            'placeholder': 'Uraian singkat mengenai latar belakang, tujuan, atau pokok-pokok isi regulasi hukum kepegawaian ini...'
         })
     )
 

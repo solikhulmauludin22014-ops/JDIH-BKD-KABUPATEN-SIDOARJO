@@ -8,7 +8,10 @@
 <!-- Banner: Gangguan Firestore — tampil hanya saat database gagal diakses -->
 <div class="bg-amber-50 border-b border-amber-200 px-4 py-3" role="alert">
     <div class="max-w-7xl mx-auto flex items-center gap-3">
-        <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
         <p class="text-sm text-amber-800 font-medium">
             Terjadi gangguan sementara saat memuat data dokumen. Silakan coba beberapa saat lagi.
         </p>
@@ -32,14 +35,16 @@
             <!-- Hero Left Column: Headline, Subtext, CTA — Staggered Animation -->
             <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                 <!-- Pill Badge -->
-                <div class="hero-animate hero-delay-0
+                <div
+                    class="hero-animate hero-delay-0
                     inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-800 text-xs font-bold tracking-wide shadow-xs">
                     <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
                     <span>PORTAL RESMI JDIH BKD KABUPATEN SIDOARJO</span>
                 </div>
 
                 <!-- Big Bold Headline -->
-                <h1 class="hero-animate hero-delay-1 text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-slate-900 leading-[1.15]">
+                <h1
+                    class="hero-animate hero-delay-1 text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-slate-900 leading-[1.15]">
                     Jaringan Dokumentasi <br class="hidden sm:inline">
                     <span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-600">
@@ -52,13 +57,15 @@
                 </h1>
 
                 <!-- Crisp Subtext -->
-                <p class="hero-animate hero-delay-2 text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
+                <p
+                    class="hero-animate hero-delay-2 text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
                     Akses terpadu seluruh naskah Peraturan Bupati, Keputusan (SK), dan Surat Edaran Badan Kepegawaian
                     Daerah Kabupaten Sidoarjo secara terbuka, akurat, dan dapat diunduh langsung.
                 </p>
 
                 <!-- Action CTAs -->
-                <div class="hero-animate hero-delay-3 pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+                <div
+                    class="hero-animate hero-delay-3 pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
                     <a href="#pencarian-dokumen"
                         class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 transition-all btn-press">
                         <span>Cari Dokumen Regulasi</span>
@@ -201,8 +208,7 @@
 </section>
 
 <!-- Nextly-Style "Trusted By" Metrics Strip — Count-Up Animation -->
-<section class="border-b border-slate-200/80 bg-white py-8 sm:py-10"
-    x-data="{
+<section class="border-b border-slate-200/80 bg-white py-8 sm:py-10" x-data="{
         observed: false,
         counts: {
             total: {{ stats.total_documents }},
@@ -238,9 +244,7 @@
             this.observed = true;
             Object.keys(this.targets).forEach(k => this.animateCount(k));
         }
-    }"
-    x-init="$nextTick(() => startAll())"
-    x-intersect.once="startAll()">
+    }" x-init="$nextTick(() => startAll())" x-intersect.once="startAll()">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-6">
             <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -250,7 +254,8 @@
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <!-- Metric 1: Total Dokumen -->
-            <div class="stat-animate stat-delay-0 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+            <div
+                class="stat-animate stat-delay-0 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
                 <div class="text-3xl sm:text-4xl font-black text-indigo-600 tracking-tight" x-text="counts.total">
                     0
                 </div>
@@ -261,7 +266,8 @@
             </div>
 
             <!-- Metric 2: Perbup -->
-            <div class="stat-animate stat-delay-1 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+            <div
+                class="stat-animate stat-delay-1 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
                 <div class="text-3xl sm:text-4xl font-black text-blue-600 tracking-tight" x-text="counts.perbup">
                     0
                 </div>
@@ -272,7 +278,8 @@
             </div>
 
             <!-- Metric 3: SK BKD / Bupati -->
-            <div class="stat-animate stat-delay-2 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+            <div
+                class="stat-animate stat-delay-2 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
                 <div class="text-3xl sm:text-4xl font-black text-purple-600 tracking-tight" x-text="counts.sk">
                     0
                 </div>
@@ -283,7 +290,8 @@
             </div>
 
             <!-- Metric 4: Surat Edaran -->
-            <div class="stat-animate stat-delay-3 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
+            <div
+                class="stat-animate stat-delay-3 p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 text-center hover:bg-slate-50 transition hover:-translate-y-0.5 hover:shadow-md duration-300">
                 <div class="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight" x-text="counts.se">
                     0
                 </div>
@@ -373,7 +381,8 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Jenis Regulasi</option>
                                 {% for code, label in document_types %}
-                                    <option value="{{ code }}" {% if selected_jenis == code %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ code }}" {% if selected_jenis==code %}selected{% endif %}>{{ label }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -385,7 +394,8 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Tahun</option>
                                 {% for yr in available_years %}
-                                    <option value="{{ yr }}" {% if selected_tahun == yr|stringformat:"i" %}selected{% endif %}>{{ yr }}</option>
+                                <option value="{{ yr }}" {% if selected_tahun==yr|stringformat:"i" %}selected{% endif
+                                    %}>{{ yr }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -398,7 +408,8 @@
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
                                 <option value="">Semua Kategori</option>
                                 {% for cat in categories %}
-                                    <option value="{{ cat }}" {% if selected_kategori == cat %}selected{% endif %}>{{ cat }}</option>
+                                <option value="{{ cat }}" {% if selected_kategori==cat %}selected{% endif %}>{{ cat }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -408,10 +419,14 @@
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Status Hukum</label>
                             <select name="status" id="filter-status"
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                                <option value="semua" {% if selected_status == 'semua' or not selected_status %}selected{% endif %}>Semua Status</option>
-                                <option value="berlaku" {% if selected_status == 'berlaku' %}selected{% endif %}>Hanya Berlaku</option>
-                                <option value="diubah" {% if selected_status == 'diubah' %}selected{% endif %}>Diubah</option>
-                                <option value="dicabut" {% if selected_status == 'dicabut' %}selected{% endif %}>Dicabut</option>
+                                <option value="semua" {% if selected_status=='semua' or not selected_status %}selected{%
+                                    endif %}>Semua Status</option>
+                                <option value="berlaku" {% if selected_status=='berlaku' %}selected{% endif %}>Hanya
+                                    Berlaku</option>
+                                <option value="diubah" {% if selected_status=='diubah' %}selected{% endif %}>Diubah
+                                </option>
+                                <option value="dicabut" {% if selected_status=='dicabut' %}selected{% endif %}>Dicabut
+                                </option>
                             </select>
                         </div>
 
@@ -420,10 +435,14 @@
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Urutan Hasil</label>
                             <select name="sort" id="filter-sort"
                                 class="w-full text-xs font-medium rounded-xl border-slate-200 shadow-xs focus:border-indigo-600 focus:ring-indigo-600 py-2.5 px-3 bg-slate-50 hover:bg-white transition">
-                                <option value="terbaru" {% if selected_sort == 'terbaru' %}selected{% endif %}>Terbaru Diterbitkan</option>
-                                <option value="populer" {% if selected_sort == 'populer' %}selected{% endif %}>Paling Sering Dilihat</option>
-                                <option value="tahun_desc" {% if selected_sort == 'tahun_desc' %}selected{% endif %}>Tahun (Baru ke Lama)</option>
-                                <option value="tahun_asc" {% if selected_sort == 'tahun_asc' %}selected{% endif %}>Tahun (Lama ke Baru)</option>
+                                <option value="terbaru" {% if selected_sort=='terbaru' %}selected{% endif %}>Terbaru
+                                    Diterbitkan</option>
+                                <option value="populer" {% if selected_sort=='populer' %}selected{% endif %}>Paling
+                                    Sering Dilihat</option>
+                                <option value="tahun_desc" {% if selected_sort=='tahun_desc' %}selected{% endif %}>Tahun
+                                    (Baru ke Lama)</option>
+                                <option value="tahun_asc" {% if selected_sort=='tahun_asc' %}selected{% endif %}>Tahun
+                                    (Lama ke Baru)</option>
                             </select>
                         </div>
                     </div>

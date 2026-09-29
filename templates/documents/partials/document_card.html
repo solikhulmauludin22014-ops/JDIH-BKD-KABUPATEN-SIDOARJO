@@ -54,9 +54,11 @@
         </h3>
 
         <!-- Description snippet -->
+        {% if doc.deskripsi %}
         <p class="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-4 font-body">
             {{ doc.deskripsi }}
         </p>
+        {% endif %}
 
         <!-- Category & Tags -->
         <div class="mb-5 space-y-2">

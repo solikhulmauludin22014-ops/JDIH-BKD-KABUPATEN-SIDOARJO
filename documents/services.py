@@ -32,17 +32,19 @@ DOCUMENT_TYPES = [
     ('se', 'Surat Edaran (SE)'),
     ('instruksi', 'Instruksi Bupati'),
     ('permen', 'Peraturan Menteri / BKN'),
+    ('lainnya', 'Lainnya'),
 ]
 
 # Standard Categories for BKD / Kepegawaian
 CATEGORIES = [
     'Manajemen Kinerja & SKP',
-    'Pengadaan ASN (CPNS & PPPK)',
-    'Mutasi, Promosi & Jabatan Fungsional',
+    'Pemberhentian Kepegawaian',
     'Kenaikan Pangkat & Gaji Berkala',
+    'Mutasi, Promosi & Jabatan Fungsional',
+    'Kesejahteraan & Cuti',
+    'Pensiun',
     'Disiplin Pegawai & Kode Etik',
     'Pengembangan Kompetensi & Diklat',
-    'Kesejahteraan, Cuti & Pensiun',
     'Tata Kelola Kepegawaian Daerah',
 ]
 

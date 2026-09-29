@@ -25,14 +25,19 @@
 
     <!-- Document Grid — Staggered Fade-In Animation -->
     {% if documents %}
+        <style>
+            .anim-delay-0 { animation-delay: 0ms; }
+            .anim-delay-1 { animation-delay: 100ms; }
+            .anim-delay-2 { animation-delay: 200ms; }
+            .anim-delay-3 { animation-delay: 300ms; }
+            .anim-delay-4 { animation-delay: 400ms; }
+            .anim-delay-5 { animation-delay: 500ms; }
+            .anim-delay-6 { animation-delay: 600ms; }
+        </style>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for doc in documents %}
-                {# Stagger delay: maks 6 kartu pertama yang diberi delay, sisanya langsung #}
-                {% if forloop.counter0 < 6 %}
-                    <div class="doc-card-animate" style="animation-delay: {{ forloop.counter0 }}00ms;">
-                {% else %}
-                    <div class="doc-card-animate" style="animation-delay: 600ms;">
-                {% endif %}
+                {# Stagger delay: maks 6 kartu pertama yang diberi delay, sisanya langsung 600ms #}
+                <div class="doc-card-animate anim-delay-{% if forloop.counter0 < 6 %}{{ forloop.counter0 }}{% else %}6{% endif %}">
                     {% include "documents/partials/document_card.html" with doc=doc %}
                 </div>
             {% endfor %}
