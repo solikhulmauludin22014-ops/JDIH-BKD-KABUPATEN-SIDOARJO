@@ -262,7 +262,7 @@ def document_create_view(request):
                         datetime.min.time()
                     ),
                     'status': form.cleaned_data['status'],
-                    'deskripsi': form.cleaned_data['deskripsi'],
+                    'deskripsi': form.cleaned_data.get('deskripsi', ''),
                     'tags': tags_list,
                     'file_url': storage_result['file_url'],
                     'file_name': storage_result['file_name'],
@@ -321,7 +321,6 @@ def document_edit_view(request, doc_id):
                         datetime.min.time()
                     ),
                     'status': form.cleaned_data['status'],
-                    'deskripsi': form.cleaned_data['deskripsi'],
                     'tags': tags_list,
                 }
 
@@ -367,7 +366,6 @@ def document_edit_view(request, doc_id):
             'tahun': document.get('tahun'),
             'tanggal_terbit': tanggal_str,
             'status': document.get('status'),
-            'deskripsi': document.get('deskripsi'),
             'tags': ", ".join(document.get('tags', [])),
         }
         form = DocumentForm(initial=initial_data, is_edit=True)
