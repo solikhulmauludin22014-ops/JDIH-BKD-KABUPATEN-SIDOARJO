@@ -1,24 +1,24 @@
-"""
+﻿"""
 Document Service Layer for JDIH BKD Sidoarjo.
 Handles interactions with Firestore collection 'documents'.
 
-MODE OPERASI:
-- Production (Vercel, kredensial Firebase ada): SELALU query Firestore.
-  Tidak ada fallback ke mock dalam kondisi apapun.
-  Kegagalan Firestore akan menghasilkan exception yang naik ke view.
-- Development lokal (tanpa serviceAccountKey.json): Gunakan _MOCK_DOCUMENTS
-  sebagai dataset in-memory untuk pengembangan dan preview UI.
+MODE OPERASI (PRODUCTION-ONLY):
+- SELALU query Firestore. Tidak ada fallback ke data palsu dalam kondisi apapun.
+- Kegagalan Firestore ditangkap di view dan menampilkan pesan error yang jujur ke user.
+- _MOCK_DOCUMENTS telah DIHAPUS TOTAL dari codebase secara sengaja.
+  Referensi ke _MOCK_DOCUMENTS akan langsung menghasilkan NameError yang terlihat.
 
-NOTE: _MOCK_DOCUMENTS TIDAK PERNAH digunakan di production.
-Untuk mengisi data awal Firestore (dev only), jalankan:
-    python manage.py seed_bkd_documents
+Untuk development lokal:
+- Pastikan FIREBASE_CREDENTIALS_PATH menunjuk ke serviceAccountKey.json yang valid, ATAU
+- Isi FIREBASE_SERVICE_ACCOUNT_JSON di environment.
+- Untuk seed data awal ke Firestore: python manage.py seed_bkd_documents
 """
 
 import uuid
 import logging
 from datetime import datetime
 from google.cloud import firestore
-from core.firebase_config import get_firestore_db, is_mock_mode
+from core.firebase_config import get_firestore_db
 
 logger = logging.getLogger(__name__)
 
@@ -55,189 +55,24 @@ STATUS_CHOICES = [
     ('dicabut', 'Dicabut'),
 ]
 
-# In-Memory Seed/Mock Documents for local testing & instant preview
-_MOCK_DOCUMENTS = [
-    {
-        'id': 'doc-bkd-001',
-        'judul': 'Pedoman Pelaksanaan Evaluasi Kinerja Pegawai Negeri Sipil di Lingkungan Pemerintah Kabupaten Sidoarjo',
-        'nomor_dokumen': 'Perbup No. 42 Tahun 2023',
-        'jenis_dokumen': 'perbup',
-        'kategori': 'Manajemen Kinerja & SKP',
-        'tags': ['kinerja', 'skp', 'pns', 'evaluasi', 'bkd'],
-        'tahun': 2023,
-        'tanggal_terbit': datetime(2023, 8, 15, 9, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Peraturan ini mengatur tata cara dan standar operasional pelaksanaan penilaian kinerja pegawai negeri sipil tahunan dan periodik guna menjamin akuntabilitas serta meritokrasi birokrasi Sidoarjo.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perbup_42_2023_Manajemen_Kinerja_PNS.pdf',
-        'ukuran_file': 1245184,
-        'view_count': 1420,
-        'download_count': 685,
-        'created_at': datetime(2023, 8, 15, 10, 0),
-        'updated_at': datetime(2023, 8, 15, 10, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-002',
-        'judul': 'Penetapan Kebutuhan Pegawai Pemerintah dengan Perjanjian Kerja (PPPK) di Lingkungan Pemerintah Kabupaten Sidoarjo Formasi Tahun Anggaran 2024',
-        'nomor_dokumen': 'Keputusan Bupati No. 188/245/438.1.1/2024',
-        'jenis_dokumen': 'sk',
-        'kategori': 'Pengadaan ASN (CPNS & PPPK)',
-        'tags': ['pppk', 'formasi', 'casn', 'guru', 'nakes', 'teknis'],
-        'tahun': 2024,
-        'tanggal_terbit': datetime(2024, 3, 20, 8, 30),
-        'status': 'berlaku',
-        'deskripsi': 'Penetapan rincian kebutuhan dan alokasi formasi PPPK untuk tenaga guru, tenaga kesehatan, dan tenaga teknis di lingkungan Pemkab Sidoarjo.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'SK_Bupati_188_245_2024_Formasi_PPPK.pdf',
-        'ukuran_file': 892416,
-        'view_count': 3240,
-        'download_count': 1950,
-        'created_at': datetime(2024, 3, 20, 9, 15),
-        'updated_at': datetime(2024, 3, 20, 9, 15),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-003',
-        'judul': 'Petunjuk Teknis Pelaksanaan Penyesuaian Ijazah dan Ujian Dinas bagi PNS Kabupaten Sidoarjo',
-        'nomor_dokumen': 'SE Kepala BKD No. 800/142/438.5.2/2024',
-        'jenis_dokumen': 'se',
-        'kategori': 'Pengembangan Kompetensi & Diklat',
-        'tags': ['ujian dinas', 'penyesuaian ijazah', 'kenaikan pangkat'],
-        'tahun': 2024,
-        'tanggal_terbit': datetime(2024, 5, 12, 10, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Surat Edaran mengenai jadwal, persyaratan berkas, dan mekanisme Computer Assisted Test (CAT) untuk penyesuaian ijazah dan ujian dinas tingkat I & II.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'SE_BKD_Penyesuaian_Ijazah_2024.pdf',
-        'ukuran_file': 655360,
-        'view_count': 980,
-        'download_count': 420,
-        'created_at': datetime(2024, 5, 12, 11, 0),
-        'updated_at': datetime(2024, 5, 12, 11, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-004',
-        'judul': 'Tata Cara Mutasi, Rotasi, dan Promosi Pegawai Negeri Sipil di Lingkungan Pemkab Sidoarjo',
-        'nomor_dokumen': 'Perbup No. 15 Tahun 2022',
-        'jenis_dokumen': 'perbup',
-        'kategori': 'Mutasi, Promosi & Jabatan Fungsional',
-        'tags': ['mutasi', 'rotasi', 'promosi', 'talent pool'],
-        'tahun': 2022,
-        'tanggal_terbit': datetime(2022, 4, 10, 9, 0),
-        'status': 'diubah',
-        'deskripsi': 'Pedoman manajemen mutasi dan rotasi internal antar perangkat daerah. Telah diubah sebagian ketentuannya oleh Perbup No. 33 Tahun 2024.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perbup_15_2022_Mutasi_PNS.pdf',
-        'ukuran_file': 1450000,
-        'view_count': 1850,
-        'download_count': 810,
-        'created_at': datetime(2022, 4, 10, 10, 0),
-        'updated_at': datetime(2024, 6, 1, 14, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-005',
-        'judul': 'Perubahan atas Peraturan Bupati No. 15 Tahun 2022 tentang Tata Cara Mutasi, Rotasi, dan Promosi PNS',
-        'nomor_dokumen': 'Perbup No. 33 Tahun 2024',
-        'jenis_dokumen': 'perbup',
-        'kategori': 'Mutasi, Promosi & Jabatan Fungsional',
-        'tags': ['mutasi', 'perubahan perbup', 'manajemen talenta'],
-        'tahun': 2024,
-        'tanggal_terbit': datetime(2024, 6, 1, 11, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Penyempurnaan mekanisme uji kompetensi dan integrasi sistem informasi manajemen talenta aparatur sipil negara.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perbup_33_2024_Perubahan_Mutasi.pdf',
-        'ukuran_file': 980000,
-        'view_count': 2100,
-        'download_count': 1150,
-        'created_at': datetime(2024, 6, 1, 11, 30),
-        'updated_at': datetime(2024, 6, 1, 11, 30),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-006',
-        'judul': 'Penegakan Disiplin dan Kode Etik Aparatur Sipil Negara di Lingkungan Pemerintah Kabupaten Sidoarjo',
-        'nomor_dokumen': 'Perbup No. 58 Tahun 2021',
-        'jenis_dokumen': 'perbup',
-        'kategori': 'Disiplin Pegawai & Kode Etik',
-        'tags': ['disiplin', 'kode etik', 'hukuman disiplin', 'kehadiran'],
-        'tahun': 2021,
-        'tanggal_terbit': datetime(2021, 11, 5, 8, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Mengatur norma perilaku, kewajiban, larangan, serta mekanisme pemeriksaan pelanggaran disiplin dan sidang majelis kode etik bagi seluruh ASN.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perbup_58_2021_Disiplin_Kode_Etik.pdf',
-        'ukuran_file': 1760000,
-        'view_count': 1630,
-        'download_count': 740,
-        'created_at': datetime(2021, 11, 5, 9, 0),
-        'updated_at': datetime(2021, 11, 5, 9, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-007',
-        'judul': 'Pemberian Tambahan Penghasilan Pegawai (TPP) Aparatur Sipil Negara Kabupaten Sidoarjo Tahun 2024',
-        'nomor_dokumen': 'Perbup No. 8 Tahun 2024',
-        'jenis_dokumen': 'perbup',
-        'kategori': 'Kesejahteraan, Cuti & Pensiun',
-        'tags': ['tpp', 'tunjangan', 'kesejahteraan', 'produktivitas'],
-        'tahun': 2024,
-        'tanggal_terbit': datetime(2024, 1, 15, 10, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Pedoman kriteria perhitungan, bobot beban kerja, kondisi kerja, dan kelangkaan profesi dalam penetapan TPP ASN Sidoarjo.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perbup_8_2024_TPP_ASN.pdf',
-        'ukuran_file': 2240000,
-        'view_count': 4890,
-        'download_count': 2670,
-        'created_at': datetime(2024, 1, 15, 11, 0),
-        'updated_at': datetime(2024, 1, 15, 11, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-008',
-        'judul': 'Tata Cara Pengusulan Pensiun Pertama dan Layanan Klim Otomatis bagi PNS Purna Tugas',
-        'nomor_dokumen': 'SE Kepala BKD No. 800/512/438.5.3/2023',
-        'jenis_dokumen': 'se',
-        'kategori': 'Kesejahteraan, Cuti & Pensiun',
-        'tags': ['pensiun', 'layanan klim', 'taspen', 'purna tugas'],
-        'tahun': 2023,
-        'tanggal_terbit': datetime(2023, 10, 8, 9, 0),
-        'status': 'berlaku',
-        'deskripsi': 'Prosedur satu pintu integrasi BKD dengan PT Taspen untuk kemudahan penetapan SK Pensiun dan pembayaran hak tabungan hari tua.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'SE_Layanan_Pensiun_BKD.pdf',
-        'ukuran_file': 540000,
-        'view_count': 820,
-        'download_count': 390,
-        'created_at': datetime(2023, 10, 8, 10, 0),
-        'updated_at': datetime(2023, 10, 8, 10, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-    {
-        'id': 'doc-bkd-009',
-        'judul': 'Pembentukan dan Susunan Perangkat Daerah Kabupaten Sidoarjo (Regulasi Lama)',
-        'nomor_dokumen': 'Perda No. 8 Tahun 2016',
-        'jenis_dokumen': 'perda',
-        'kategori': 'Tata Kelola Kepegawaian Daerah',
-        'tags': ['perda', 'kelembagaan', 'organisasi'],
-        'tahun': 2016,
-        'tanggal_terbit': datetime(2016, 9, 22, 14, 0),
-        'status': 'dicabut',
-        'deskripsi': 'Perda pembentukan susunan dinas dan badan. Dinyatakan dicabut dan digantikan oleh Perda No. 2 Tahun 2022.',
-        'file_url': 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf',
-        'file_name': 'Perda_8_2016_Susunan_Perangkat_Daerah.pdf',
-        'ukuran_file': 3100000,
-        'view_count': 640,
-        'download_count': 190,
-        'created_at': datetime(2016, 9, 22, 15, 0),
-        'updated_at': datetime(2022, 3, 10, 10, 0),
-        'created_by': 'admin_bkd_sidoarjo',
-    },
-]
+# NOTE: _MOCK_DOCUMENTS telah DIHAPUS TOTAL dari codebase.
+# Tidak ada data palsu di sini. Referensi ke _MOCK_DOCUMENTS = NameError.
+
+
+def _require_firestore_db():
+    """
+    Mendapatkan Firestore DB client. Raise RuntimeError eksplisit jika tidak tersedia.
+    Memastikan tidak ada jalur kode yang bisa diam-diam melewati error koneksi Firestore.
+    """
+    db = get_firestore_db()
+    if db is None:
+        raise RuntimeError(
+            "Firestore tidak dapat diinisialisasi. "
+            "Pastikan FIREBASE_SERVICE_ACCOUNT_JSON (Vercel) atau "
+            "FIREBASE_CREDENTIALS_PATH (lokal) sudah dikonfigurasi dengan benar. "
+            "TIDAK ADA fallback ke data palsu — konfigurasi credentials harus diselesaikan."
+        )
+    return db
 
 
 def _safe_count(val: object) -> int:
@@ -246,7 +81,7 @@ def _safe_count(val: object) -> int:
     Menangani tipe dinamis dari dict Firestore: None, int, float, str, datetime, dll.
     """
     if isinstance(val, bool):
-        return 0  # bool adalah subclass int, tapi 0/1 tidak bermakna di sini
+        return 0
     if isinstance(val, (int, float)):
         return int(val)
     if isinstance(val, str):
@@ -261,12 +96,28 @@ def _format_firestore_doc(doc_snapshot):
     """Formats Firestore document snapshot into standardized dictionary."""
     data = doc_snapshot.to_dict()
     data['id'] = doc_snapshot.id
-    # Convert Firestore Timestamps to datetime
     for field in ['tanggal_terbit', 'created_at', 'updated_at']:
         val = data.get(field)
         if hasattr(val, 'to_datetime'):
             data[field] = val.to_datetime()
     return data
+
+
+def _get_raw_dataset():
+    """
+    Helper internal: ambil SEMUA dokumen dari Firestore.
+    - SELALU query Firestore - tidak ada fallback mock.
+    - Exception naik ke caller jika Firestore gagal.
+    - Return list (bisa [] jika Firestore kosong, bukan error).
+    """
+    db = _require_firestore_db()
+    logger.info(
+        f"[_get_raw_dataset] Firestore client id={id(db)} "
+        f"- query collection '{COLLECTION_NAME}'"
+    )
+    items = [_format_firestore_doc(doc) for doc in db.collection(COLLECTION_NAME).stream()]
+    logger.info(f"[_get_raw_dataset] Fetched {len(items)} docs from Firestore.")
+    return items
 
 
 def get_documents(
@@ -281,27 +132,21 @@ def get_documents(
     page_size=9
 ):
     """
-    Search, filter, and paginate documents from Firestore (or mock in dev).
+    Search, filter, dan paginate dokumen dari Firestore.
 
-    Di production: query Firestore, exception di-raise ke caller.
-    Di dev lokal (mock mode): gunakan _MOCK_DOCUMENTS.
+    SELALU query Firestore - tidak ada fallback ke data palsu.
+    Dashboard admin dan beranda publik keduanya memanggil fungsi ini (satu sumber data).
+    Kegagalan Firestore -> exception naik ke caller (view).
 
     Returns a dict with:
         items, total_items, total_pages, current_page,
         has_previous, has_next, previous_page_number, next_page_number, page_range
     """
-    db = get_firestore_db()
-
-    if db and not is_mock_mode():
-        # Production: query Firestore — biarkan exception naik ke view jika gagal
-        coll_ref = db.collection(COLLECTION_NAME)
-        docs = coll_ref.stream()
-        results = [_format_firestore_doc(doc) for doc in docs]
-        logger.info(f"[get_documents] Firestore: fetched {len(results)} raw docs.")
-    else:
-        # Dev lokal: gunakan mock data
-        logger.debug("[get_documents] Mock mode: using _MOCK_DOCUMENTS.")
-        results = list(_MOCK_DOCUMENTS)
+    db = _require_firestore_db()
+    coll_ref = db.collection(COLLECTION_NAME)
+    docs = coll_ref.stream()
+    results = [_format_firestore_doc(doc) for doc in docs]
+    logger.info(f"[get_documents] Firestore: fetched {len(results)} raw docs.")
 
     # Filter: deleted
     if not include_deleted:
@@ -374,28 +219,25 @@ def get_documents(
 
 
 def get_document_by_id(doc_id):
-    """Retrieve single document by ID from Firestore (or mock in dev)."""
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: exception naik ke caller, tidak ada fallback mock
-        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-        doc = doc_ref.get()
-        if doc.exists:
-            return _format_firestore_doc(doc)
-        return None
-
-    # Dev lokal: cari di mock
-    for d in _MOCK_DOCUMENTS:
-        if d['id'] == doc_id:
-            return d
+    """
+    Retrieve single document by ID from Firestore.
+    SELALU query Firestore - exception naik ke caller jika gagal.
+    Return None jika dokumen tidak ditemukan (bukan error).
+    """
+    db = _require_firestore_db()
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    doc = doc_ref.get()
+    if doc.exists:
+        return _format_firestore_doc(doc)
     return None
 
 
 def create_document(data, user_uid="admin_bkd"):
     """
-    Create a new document in Firestore (or mock in dev).
-    Di production: exception naik ke caller jika Firestore gagal.
+    Create a new document in Firestore.
+    SELALU tulis ke Firestore - exception naik ke caller jika gagal.
     """
+    db = _require_firestore_db()
     now = datetime.now()
     doc_id = str(uuid.uuid4())
     doc_data = {
@@ -420,251 +262,140 @@ def create_document(data, user_uid="admin_bkd"):
         'created_by': user_uid,
     }
 
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: tulis ke Firestore, exception naik ke caller
-        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-        doc_ref.set(doc_data)
-        logger.info(f"[create_document] Firestore: created doc_id={doc_id}")
-        return doc_data
-
-    # Dev lokal: simpan ke mock in-memory
-    logger.debug(f"[create_document] Mock mode: inserting doc_id={doc_id}")
-    _MOCK_DOCUMENTS.insert(0, doc_data)
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    doc_ref.set(doc_data)
+    logger.info(f"[create_document] Firestore: created doc_id={doc_id}")
     return doc_data
 
 
 def update_document(doc_id, data):
     """
-    Update document metadata in Firestore (or mock in dev).
-    Di production: exception naik ke caller jika Firestore gagal.
+    Update document metadata in Firestore.
+    SELALU update Firestore - exception naik ke caller jika gagal.
     """
+    db = _require_firestore_db()
     now = datetime.now()
-    db = get_firestore_db()
-
     clean_data = {k: v for k, v in data.items() if k not in ['id', 'created_at', 'created_by']}
     clean_data['updated_at'] = now
-
-    if db and not is_mock_mode():
-        # Production: update Firestore, exception naik ke caller
-        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-        doc_ref.update(clean_data)
-        logger.info(f"[update_document] Firestore: updated doc_id={doc_id}")
-        return get_document_by_id(doc_id)
-
-    # Dev lokal: update mock in-memory
-    for idx, d in enumerate(_MOCK_DOCUMENTS):
-        if d['id'] == doc_id:
-            _MOCK_DOCUMENTS[idx].update(clean_data)
-            return _MOCK_DOCUMENTS[idx]
-    return None
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    doc_ref.update(clean_data)
+    logger.info(f"[update_document] Firestore: updated doc_id={doc_id}")
+    return get_document_by_id(doc_id)
 
 
 def delete_document(doc_id, soft=True):
     """
     Delete document. If soft=True, sets status='dihapus'. If soft=False, permanent delete.
-    Di production: exception naik ke caller jika Firestore gagal.
+    SELALU operasi ke Firestore - exception naik ke caller jika gagal.
     """
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: mutasi Firestore, exception naik ke caller
-        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-        if soft:
-            doc_ref.update({'status': 'dihapus', 'updated_at': datetime.now()})
-        else:
-            doc_ref.delete()
-        logger.info(f"[delete_document] Firestore: doc_id={doc_id} soft={soft}")
-        return True
-
-    # Dev lokal: mutasi mock in-memory
-    for idx, d in enumerate(_MOCK_DOCUMENTS):
-        if d['id'] == doc_id:
-            if soft:
-                _MOCK_DOCUMENTS[idx]['status'] = 'dihapus'
-                _MOCK_DOCUMENTS[idx]['updated_at'] = datetime.now()
-            else:
-                _MOCK_DOCUMENTS.pop(idx)
-            return True
-    return False
+    db = _require_firestore_db()
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    if soft:
+        doc_ref.update({'status': 'dihapus', 'updated_at': datetime.now()})
+    else:
+        doc_ref.delete()
+    logger.info(f"[delete_document] Firestore: doc_id={doc_id} soft={soft}")
+    return True
 
 
 def restore_document(doc_id):
-    """Restore a soft-deleted document to 'berlaku'.
-    Di production: exception naik ke caller jika Firestore gagal.
     """
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: update Firestore, exception naik ke caller
-        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-        doc_ref.update({'status': 'berlaku', 'updated_at': datetime.now()})
-        logger.info(f"[restore_document] Firestore: restored doc_id={doc_id}")
-        return True
-
-    # Dev lokal: update mock in-memory
-    for idx, d in enumerate(_MOCK_DOCUMENTS):
-        if d['id'] == doc_id:
-            _MOCK_DOCUMENTS[idx]['status'] = 'berlaku'
-            _MOCK_DOCUMENTS[idx]['updated_at'] = datetime.now()
-            return True
-    return False
+    Restore a soft-deleted document to 'berlaku'.
+    SELALU operasi ke Firestore - exception naik ke caller jika gagal.
+    """
+    db = _require_firestore_db()
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    doc_ref.update({'status': 'berlaku', 'updated_at': datetime.now()})
+    logger.info(f"[restore_document] Firestore: restored doc_id={doc_id}")
+    return True
 
 
 def bulk_delete_documents(doc_ids, soft=True):
     """
     Bulk delete multiple documents via WriteBatch (atomic, max 500 ops).
-    Di production: exception naik ke caller jika Firestore gagal.
+    SELALU operasi ke Firestore - exception naik ke caller jika gagal.
     """
     if not doc_ids:
         return 0
-
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: WriteBatch ke Firestore, exception naik ke caller
-        batch = db.batch()
-        now = datetime.now()
-        for doc_id in doc_ids:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            if soft:
-                batch.update(doc_ref, {'status': 'dihapus', 'updated_at': now})
-            else:
-                batch.delete(doc_ref)
-        batch.commit()
-        logger.info(f"[bulk_delete_documents] Firestore: {len(doc_ids)} docs, soft={soft}")
-        return len(doc_ids)
-
-    # Dev lokal: mutasi mock in-memory
-    count = 0
+    db = _require_firestore_db()
+    batch = db.batch()
     now = datetime.now()
     for doc_id in doc_ids:
-        for idx, d in enumerate(_MOCK_DOCUMENTS):
-            if d['id'] == doc_id:
-                if soft:
-                    _MOCK_DOCUMENTS[idx]['status'] = 'dihapus'
-                    _MOCK_DOCUMENTS[idx]['updated_at'] = now
-                else:
-                    _MOCK_DOCUMENTS.pop(idx)
-                count += 1
-                break
-    return count
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        if soft:
+            batch.update(doc_ref, {'status': 'dihapus', 'updated_at': now})
+        else:
+            batch.delete(doc_ref)
+    batch.commit()
+    logger.info(f"[bulk_delete_documents] Firestore: {len(doc_ids)} docs, soft={soft}")
+    return len(doc_ids)
 
 
 def bulk_restore_documents(doc_ids):
     """
     Bulk restore multiple documents via WriteBatch.
-    Di production: exception naik ke caller jika Firestore gagal.
+    SELALU operasi ke Firestore - exception naik ke caller jika gagal.
     """
     if not doc_ids:
         return 0
-
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Production: WriteBatch ke Firestore, exception naik ke caller
-        batch = db.batch()
-        now = datetime.now()
-        for doc_id in doc_ids:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            batch.update(doc_ref, {'status': 'berlaku', 'updated_at': now})
-        batch.commit()
-        logger.info(f"[bulk_restore_documents] Firestore: restored {len(doc_ids)} docs")
-        return len(doc_ids)
-
-    # Dev lokal: update mock in-memory
-    count = 0
+    db = _require_firestore_db()
+    batch = db.batch()
     now = datetime.now()
     for doc_id in doc_ids:
-        for idx, d in enumerate(_MOCK_DOCUMENTS):
-            if d['id'] == doc_id:
-                _MOCK_DOCUMENTS[idx]['status'] = 'berlaku'
-                _MOCK_DOCUMENTS[idx]['updated_at'] = now
-                count += 1
-                break
-    return count
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        batch.update(doc_ref, {'status': 'berlaku', 'updated_at': now})
+    batch.commit()
+    logger.info(f"[bulk_restore_documents] Firestore: restored {len(doc_ids)} docs")
+    return len(doc_ids)
 
 
 def increment_view_count(doc_id):
-    """Increment document view count. Non-critical — silent skip on failure."""
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc_ref.update({'view_count': firestore.Increment(1)})
-        except Exception as e:
-            # Counter bukan data kritis — log warning dan lanjutkan
-            logger.warning(f"[increment_view_count] Skipped for {doc_id}: {e}")
-        return  # Jangan mutasi mock di production
-
-    # Dev lokal: update mock in-memory
-    for d in _MOCK_DOCUMENTS:
-        if d['id'] == doc_id:
-            d['view_count'] = int(d.get('view_count') or 0) + 1  # type: ignore[arg-type]
-            break
+    """Increment document view count. Non-critical -- silent skip on failure."""
+    try:
+        db = get_firestore_db()
+        if db is None:
+            logger.warning(f"[increment_view_count] Firestore tidak tersedia untuk doc_id={doc_id}, skip.")
+            return
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc_ref.update({'view_count': firestore.Increment(1)})
+    except Exception as e:
+        logger.warning(f"[increment_view_count] Skipped for {doc_id}: {e}")
 
 
 def increment_download_count(doc_id):
-    """Increment document download count. Non-critical — silent skip on failure."""
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        try:
-            doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-            doc_ref.update({'download_count': firestore.Increment(1)})
-        except Exception as e:
-            # Counter bukan data kritis — log warning dan lanjutkan
-            logger.warning(f"[increment_download_count] Skipped for {doc_id}: {e}")
-        return  # Jangan mutasi mock di production
-
-    # Dev lokal: update mock in-memory
-    for d in _MOCK_DOCUMENTS:
-        if d['id'] == doc_id:
-            d['download_count'] = int(d.get('download_count') or 0) + 1  # type: ignore[arg-type]
-            break
-
-
-def _get_raw_dataset():
-    """
-    Helper untuk statistik dan get_available_years().
-    - Production (Firestore connected): query Firestore, return list (bisa kosong [])
-      Exception naik ke caller — TIDAK fallback ke mock.
-    - Dev lokal (mock mode): return _MOCK_DOCUMENTS.
-    """
-    db = get_firestore_db()
-    if db and not is_mock_mode():
-        # Log identitas koneksi: pastikan memakai klien Firestore yang sama
-        logger.info(
-            f"[_get_raw_dataset] Firestore client id={id(db)} "
-            f"(get_documents memakai get_firestore_db() yang sama)"
-        )
-        # Production: exception naik ke caller
-        items = [_format_firestore_doc(doc) for doc in db.collection(COLLECTION_NAME).stream()]
-        logger.info(f"[_get_raw_dataset] Firestore: {len(items)} docs fetched.")
-        return items
-
-    # Dev lokal
-    logger.debug("[_get_raw_dataset] Mock mode: using _MOCK_DOCUMENTS.")
-    return list(_MOCK_DOCUMENTS)
+    """Increment document download count. Non-critical -- silent skip on failure."""
+    try:
+        db = get_firestore_db()
+        if db is None:
+            logger.warning(f"[increment_download_count] Firestore tidak tersedia untuk doc_id={doc_id}, skip.")
+            return
+        doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+        doc_ref.update({'download_count': firestore.Increment(1)})
+    except Exception as e:
+        logger.warning(f"[increment_download_count] Skipped for {doc_id}: {e}")
 
 
 def get_statistics():
     """
     Returns general metrics for public hero and admin dashboard.
 
-    Menghitung langsung dari Firestore (jika terhubung) atau mock data.
+    SELALU mengambil dari Firestore - tidak ada mock fallback.
     Dokumen dengan status 'dihapus' (soft-deleted) TIDAK ikut terhitung.
     Field jenis_dokumen di-compare lowercase agar tidak case-sensitive.
+
+    Dashboard admin dan beranda publik KEDUANYA memanggil fungsi ini (satu sumber data).
     """
     all_docs = _get_raw_dataset()
 
-    # ── Logging diagnostik: tampilkan data mentah SEBELUM filter ────────────────
-    source = "Firestore" if (not is_mock_mode() and get_firestore_db()) else "Mock"
     sample_jenis = [d.get('jenis_dokumen') for d in all_docs[:5]]
     sample_status = [d.get('status') for d in all_docs[:5]]
     logger.info(
-        f"[get_statistics] source={source} "
+        f"[get_statistics] source=Firestore "
         f"total_raw={len(all_docs)} "
         f"sample_jenis={sample_jenis} "
         f"sample_status={sample_status}"
     )
 
-    # Exclude soft-deleted documents (status == 'dihapus' — sesuai delete_document())
     docs = [d for d in all_docs if str(d.get('status', '')).lower() != 'dihapus']
     logger.info(
         f"[get_statistics] setelah filter dihapus: total_aktif={len(docs)} "
@@ -675,7 +406,6 @@ def get_statistics():
     total_views = sum(d.get('view_count', 0) for d in docs)
     total_downloads = sum(d.get('download_count', 0) for d in docs)
 
-    # Hitung per jenis dokumen — lowercase comparison agar robust
     perbup_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'perbup')
     sk_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'sk')
     perda_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'perda')
@@ -683,12 +413,10 @@ def get_statistics():
     instruksi_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'instruksi')
     permen_count = sum(1 for d in docs if str(d.get('jenis_dokumen', '')).lower() == 'permen')
 
-    # Hitung per status aktif
     berlaku_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'berlaku')
     diubah_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'diubah')
     dicabut_count = sum(1 for d in docs if str(d.get('status', '')).lower() == 'dicabut')
 
-    # Log ringkasan hasil hitung
     logger.info(
         f"[get_statistics] HASIL: total_docs={total_docs} "
         f"perbup={perbup_count} sk={sk_count} se={se_count} "

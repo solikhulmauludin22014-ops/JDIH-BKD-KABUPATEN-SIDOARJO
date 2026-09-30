@@ -10,6 +10,30 @@
     get allIds() { return Array.from(document.querySelectorAll('.row-checkbox')).map(cb => cb.value) },
     toggleAll(e) { this.selectedDocs = e.target.checked ? this.allIds : []; }
 }">
+
+    {% if firestore_error %}
+    <!-- Banner error Firestore - tampil HANYA jika koneksi ke database gagal -->
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <div>
+            <p class="font-semibold text-red-700 text-sm">Gagal memuat data dokumen dari database Firestore</p>
+            <p class="text-red-600 text-xs mt-1">
+                Daftar dokumen tidak dapat ditampilkan. Silakan refresh halaman ini atau hubungi developer
+                jika masalah terus berlanjut.
+            </p>
+            {% if firestore_error_detail %}
+            <details class="mt-2">
+                <summary class="text-xs text-red-500 cursor-pointer hover:text-red-700">Detail error (untuk developer)</summary>
+                <code class="block mt-1 text-xs text-red-600 bg-red-100 rounded p-2 break-all">{{ firestore_error_detail }}</code>
+            </details>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Top Statistics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <!-- Card 1 -->

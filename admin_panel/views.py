@@ -16,6 +16,8 @@ from django.views.decorators.http import require_POST
 
 from core.decorators import admin_login_required
 from core.firebase_config import verify_firebase_id_token, is_mock_mode
+# NOTE: is_mock_mode() masih dipakai di login_view untuk dev fallback,
+# tetapi TIDAK boleh dipakai untuk pengambilan data dokumen.
 from core.storage_service import upload_pdf_to_storage, delete_pdf_from_storage
 
 logger = logging.getLogger(__name__)
@@ -140,6 +142,8 @@ def logout_view(request):
 def dashboard_view(request):
     """
     Admin Dashboard listing all documents with filters, quick stats, and actions.
+    SELALU mengambil data dari Firestore (via documents.services.get_documents).
+    Jika Firestore gagal, menampilkan pesan error jujur ke admin - BUKAN data palsu.
     """
     search_query = request.GET.get('q', '').strip()
     jenis = request.GET.get('jenis', '').strip()
@@ -156,18 +160,58 @@ def dashboard_view(request):
 
     include_deleted = 'only' if tab == 'sampah' else (True if tab == 'semua' else False)
 
-    docs_data = get_documents(
-        search_query=search_query,
-        jenis=jenis,
-        tahun=tahun,
-        status=status if status != 'semua' else None,
-        sort_by=sort_by,
-        page=page,
-        page_size=15,
-        include_deleted=include_deleted,
-    )
+    firestore_error = False
+    firestore_error_detail = ''
 
-    stats = get_statistics()
+    # Nilai default kosong jika Firestore gagal
+    docs_data = {
+        'items': [], 'total_items': 0, 'total_pages': 1, 'current_page': 1,
+        'has_previous': False, 'has_next': False,
+        'previous_page_number': 0, 'next_page_number': 2, 'page_range': [1],
+    }
+    stats = {
+        'total_documents': 0, 'total_views': 0, 'total_downloads': 0,
+        'perbup_count': 0, 'sk_count': 0, 'perda_count': 0,
+        'se_count': 0, 'instruksi_count': 0, 'permen_count': 0,
+        'berlaku_count': 0, 'diubah_count': 0, 'dicabut_count': 0,
+    }
+    available_years = []
+
+    # Fetch dokumen dari Firestore
+    try:
+        docs_data = get_documents(
+            search_query=search_query,
+            jenis=jenis,
+            tahun=tahun,
+            status=status if status != 'semua' else None,
+            sort_by=sort_by,
+            page=page,
+            page_size=15,
+            include_deleted=include_deleted,
+        )
+        logger.info(
+            f"[dashboard_view] get_documents OK: "
+            f"total_items={docs_data.get('total_items')} tab={tab} page={page}"
+        )
+    except Exception as e:
+        logger.exception(f"[dashboard_view] get_documents GAGAL: {type(e).__name__}: {e}")
+        firestore_error = True
+        firestore_error_detail = str(e)
+
+    # Fetch statistik (independen dari daftar dokumen)
+    try:
+        stats = get_statistics()
+    except Exception as e:
+        logger.exception(f"[dashboard_view] get_statistics GAGAL: {type(e).__name__}: {e}")
+        if not firestore_error:
+            firestore_error = True
+            firestore_error_detail = str(e)
+
+    # Fetch tahun tersedia (non-critical)
+    try:
+        available_years = get_available_years()
+    except Exception as e:
+        logger.warning(f"[dashboard_view] get_available_years GAGAL: {type(e).__name__}: {e}")
 
     context = {
         'documents': docs_data['items'],
@@ -179,9 +223,11 @@ def dashboard_view(request):
         'selected_sort': sort_by,
         'current_tab': tab,
         'document_types': DOCUMENT_TYPES,
-        'available_years': get_available_years(),
+        'available_years': available_years,
         'statuses': STATUS_CHOICES,
         'stats': stats,
+        'firestore_error': firestore_error,
+        'firestore_error_detail': firestore_error_detail,
     }
     return render(request, 'admin_panel/dashboard.html', context)
 
